@@ -17,6 +17,7 @@ class Grammar extends Model
     {
         return [
             'is_memorized' => 'boolean',
+            'studied_at' => 'datetime',
         ];
     }
 }

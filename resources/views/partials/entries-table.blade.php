@@ -1,6 +1,7 @@
 @php
     $updateRouteName = $activeTab === 'grammar' ? 'grammars.update' : 'vocabularies.update';
     $destroyRouteName = $activeTab === 'grammar' ? 'grammars.destroy' : 'vocabularies.destroy';
+    $toggleStudiedRouteName = $activeTab === 'grammar' ? 'grammars.toggle-studied' : 'vocabularies.toggle-studied';
 @endphp
 
 <div class="rounded-2xl bg-white p-6 shadow-sm">
@@ -16,6 +17,7 @@
                     <th class="py-2 pr-4 font-medium">品詞</th>
                     <th class="py-2 pr-4 font-medium">例文（英語）</th>
                     <th class="py-2 pr-4 font-medium">例文（日本語）</th>
+                    <th class="py-2 pr-4 text-center font-medium">学習した</th>
                     <th class="py-2 pr-4 text-center font-medium">覚えた</th>
                     <th class="py-2 pr-2 text-center font-medium">操作</th>
                 </tr>
@@ -29,6 +31,21 @@
                         <td class="py-3 pr-4 whitespace-nowrap">{{ $activeTab === 'vocabulary' ? $entry->part_of_speech->label() : '—' }}</td>
                         <td class="max-w-xs py-3 pr-4">{{ $entry->example_en ?? '—' }}</td>
                         <td class="max-w-xs py-3 pr-4">{{ $entry->example_ja ?? '—' }}</td>
+                        <td class="py-3 pr-4 text-center">
+                            {{-- 「今日すでに学習したか」を表すフラグ。チェックすると学習記録（今日の復習数）に+1、外すと-1。
+                                 studied_atが「今日」かどうかで判定するため、日付が変わると自動的に未チェックへ戻る --}}
+                            <form action="{{ route($toggleStudiedRouteName, $entry) }}" method="POST">
+                                @csrf
+                                @method('PATCH')
+                                <input
+                                    type="checkbox"
+                                    onchange="this.form.requestSubmit()"
+                                    @checked($entry->studied_at?->isToday())
+                                    class="rounded border-gray-300 text-blue-600"
+                                    aria-label="学習した"
+                                >
+                            </form>
+                        </td>
                         <td class="py-3 pr-4 text-center">
                             {{-- チェックのon/offだけで即座に更新する。他の必須項目は現在値をhiddenで引き継ぐ --}}
                             <form action="{{ route($updateRouteName, $entry) }}" method="POST">
@@ -131,7 +148,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" class="py-10 text-center text-gray-400">登録されている項目はありません。</td>
+                        <td colspan="9" class="py-10 text-center text-gray-400">登録されている項目はありません。</td>
                     </tr>
                 @endforelse
             </tbody>

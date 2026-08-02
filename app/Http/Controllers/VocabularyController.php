@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\PartOfSpeech;
+use App\Models\StudyLog;
 use App\Models\Vocabulary;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -81,6 +82,24 @@ class VocabularyController extends Controller
     public function destroy(Vocabulary $vocabulary): RedirectResponse
     {
         $vocabulary->delete();
+
+        return redirect()->route('vocabularies.index');
+    }
+
+    /**
+     * Mark the vocabulary as studied today (or undo it), updating today's study log.
+     */
+    public function toggleStudied(Vocabulary $vocabulary): RedirectResponse
+    {
+        if ($vocabulary->studied_at?->isToday()) {
+            $vocabulary->studied_at = null;
+            StudyLog::undoReview();
+        } else {
+            $vocabulary->studied_at = now();
+            StudyLog::recordReview();
+        }
+
+        $vocabulary->save();
 
         return redirect()->route('vocabularies.index');
     }

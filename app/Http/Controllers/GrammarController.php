@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Grammar;
+use App\Models\StudyLog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -76,6 +77,24 @@ class GrammarController extends Controller
     public function destroy(Grammar $grammar): RedirectResponse
     {
         $grammar->delete();
+
+        return redirect()->route('grammars.index');
+    }
+
+    /**
+     * Mark the grammar point as studied today (or undo it), updating today's study log.
+     */
+    public function toggleStudied(Grammar $grammar): RedirectResponse
+    {
+        if ($grammar->studied_at?->isToday()) {
+            $grammar->studied_at = null;
+            StudyLog::undoReview();
+        } else {
+            $grammar->studied_at = now();
+            StudyLog::recordReview();
+        }
+
+        $grammar->save();
 
         return redirect()->route('grammars.index');
     }

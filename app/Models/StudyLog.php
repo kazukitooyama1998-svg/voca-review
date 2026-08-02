@@ -43,7 +43,30 @@ class StudyLog extends Model
      */
     public static function lastStudyDate(): ?Carbon
     {
-        return static::max('study_date');
+        // max() is an aggregate query, so it returns the raw column value
+        // (a string), not a value cast through the model's date cast.
+        $date = static::max('study_date');
+
+        return $date ? Carbon::parse($date) : null;
+    }
+
+    /**
+     * Record that one more item was studied today.
+     */
+    public static function recordReview(): void
+    {
+        $studyLog = static::firstOrCreate(['study_date' => today()]);
+        $studyLog->increment('review_count');
+    }
+
+    /**
+     * Undo a review recorded earlier today (e.g. the "学習した" checkbox was unchecked again).
+     */
+    public static function undoReview(): void
+    {
+        static::whereDate('study_date', today())
+            ->where('review_count', '>', 0)
+            ->decrement('review_count');
     }
 
     /**

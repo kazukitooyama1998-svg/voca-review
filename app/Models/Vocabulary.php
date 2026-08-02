@@ -19,6 +19,7 @@ class Vocabulary extends Model
         return [
             'part_of_speech' => PartOfSpeech::class,
             'is_memorized' => 'boolean',
+            'studied_at' => 'datetime',
         ];
     }
 }
