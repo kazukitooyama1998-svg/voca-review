@@ -13,7 +13,7 @@
     <body class="flex min-h-screen flex-col bg-amber-50 text-gray-800 antialiased">
         @include('partials.header')
 
-        <main class="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-8">
+        <main class="mx-auto w-full min-w-0 max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-8">
             @yield('content')
         </main>
 

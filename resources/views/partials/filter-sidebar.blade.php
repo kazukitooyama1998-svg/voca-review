@@ -51,6 +51,6 @@
 
     <div class="rounded-2xl border border-amber-200 bg-amber-100/60 p-5 text-sm text-amber-900">
         <span aria-hidden="true">💡</span>
-        1日に100項目を目標にコツコツ続けましょう！
+        継続は力なり！1日100単語！
     </div>
 </div>

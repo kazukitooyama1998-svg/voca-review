@@ -7,61 +7,58 @@
 <div class="rounded-2xl bg-white p-6 shadow-sm">
     <h2 class="mb-4 text-base font-bold text-gray-800">登録一覧（{{ $entries->total() }} 件）</h2>
 
-    <div class="overflow-x-auto">
-        <table class="w-full min-w-[800px] table-auto text-left text-sm">
-            <thead>
-                <tr class="border-b border-gray-200 text-gray-500">
-                    <th class="py-2 pr-4 font-medium">種類</th>
-                    <th class="py-2 pr-4 font-medium">英単語・フレーズ / 文法名</th>
-                    <th class="py-2 pr-4 font-medium">意味 / 解説</th>
-                    <th class="py-2 pr-4 font-medium">品詞</th>
-                    <th class="py-2 pr-4 font-medium">例文（英語）</th>
-                    <th class="py-2 pr-4 font-medium">例文（日本語）</th>
-                    <th class="py-2 pr-4 text-center font-medium">学習した</th>
-                    <th class="py-2 pr-4 text-center font-medium">覚えた</th>
-                    <th class="py-2 pr-2 text-center font-medium">操作</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-                @forelse ($entries as $entry)
-                    <tr class="align-top text-gray-700">
-                        <td class="py-3 pr-4"><x-type-badge :type="$activeTab" /></td>
-                        <td class="py-3 pr-4 font-semibold text-gray-800">{{ $activeTab === 'grammar' ? $entry->name : $entry->word }}</td>
-                        <td class="py-3 pr-4">{{ $activeTab === 'grammar' ? $entry->explanation : $entry->meaning }}</td>
-                        <td class="py-3 pr-4 whitespace-nowrap">{{ $activeTab === 'vocabulary' ? $entry->part_of_speech->label() : '—' }}</td>
-                        <td class="max-w-xs py-3 pr-4">{{ $entry->example_en ?? '—' }}</td>
-                        <td class="max-w-xs py-3 pr-4">{{ $entry->example_ja ?? '—' }}</td>
-                        <td class="py-3 pr-4 text-center">
-                            {{-- 「今日すでに学習したか」を表すフラグ。チェックすると学習記録（今日の復習数）に+1、外すと-1。
-                                 studied_atが「今日」かどうかで判定するため、日付が変わると自動的に未チェックへ戻る --}}
-                            <form action="{{ route($toggleStudiedRouteName, $entry) }}" method="POST">
-                                @csrf
-                                @method('PATCH')
+    {{-- 横スクロールが必要なテーブルではなく、1件ずつカード状に積み上げる形にして
+         例文（英語・日本語）を縦に並べることで、横幅に依存せず最初から全項目が見えるようにする --}}
+    <div class="divide-y divide-gray-100">
+        @forelse ($entries as $entry)
+            <div class="py-5">
+                <div class="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
+                    <div class="flex min-w-0 items-start gap-3">
+                        <x-type-badge :type="$activeTab" class="mt-0.5 shrink-0" />
+                        <div class="min-w-0">
+                            <p class="flex flex-wrap items-baseline gap-x-2">
+                                <span class="text-base font-semibold text-gray-800">{{ $activeTab === 'grammar' ? $entry->name : $entry->word }}</span>
+                                @if ($activeTab === 'vocabulary')
+                                    <span class="text-xs text-gray-500">{{ $entry->part_of_speech->label() }}</span>
+                                @endif
+                            </p>
+                            <p class="mt-1 text-sm text-gray-600">{{ $activeTab === 'grammar' ? $entry->explanation : $entry->meaning }}</p>
+                        </div>
+                    </div>
+
+                    <div class="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2">
+                        {{-- 「今日すでに学習したか」を表すフラグ。チェックすると学習記録（今日の復習数）に+1、外すと-1。
+                             studied_atが「今日」かどうかで判定するため、日付が変わると自動的に未チェックへ戻る --}}
+                        <form action="{{ route($toggleStudiedRouteName, $entry) }}" method="POST">
+                            @csrf
+                            @method('PATCH')
+                            <label class="flex cursor-pointer items-center gap-1.5 text-xs whitespace-nowrap text-gray-500">
                                 <input
                                     type="checkbox"
                                     onchange="this.form.requestSubmit()"
                                     @checked($entry->studied_at?->isToday())
                                     class="rounded border-gray-300 text-blue-600"
-                                    aria-label="学習した"
                                 >
-                            </form>
-                        </td>
-                        <td class="py-3 pr-4 text-center">
-                            {{-- チェックのon/offだけで即座に更新する。他の必須項目は現在値をhiddenで引き継ぐ --}}
-                            <form action="{{ route($updateRouteName, $entry) }}" method="POST">
-                                @csrf
-                                @method('PUT')
-                                @if ($activeTab === 'grammar')
-                                    <input type="hidden" name="name" value="{{ $entry->name }}">
-                                    <input type="hidden" name="explanation" value="{{ $entry->explanation }}">
-                                @else
-                                    <input type="hidden" name="word" value="{{ $entry->word }}">
-                                    <input type="hidden" name="meaning" value="{{ $entry->meaning }}">
-                                    <input type="hidden" name="part_of_speech" value="{{ $entry->part_of_speech->value }}">
-                                @endif
-                                <input type="hidden" name="example_en" value="{{ $entry->example_en }}">
-                                <input type="hidden" name="example_ja" value="{{ $entry->example_ja }}">
-                                <input type="hidden" name="is_memorized" value="0">
+                                学習した
+                            </label>
+                        </form>
+
+                        {{-- チェックのon/offだけで即座に更新する。他の必須項目は現在値をhiddenで引き継ぐ --}}
+                        <form action="{{ route($updateRouteName, $entry) }}" method="POST">
+                            @csrf
+                            @method('PUT')
+                            @if ($activeTab === 'grammar')
+                                <input type="hidden" name="name" value="{{ $entry->name }}">
+                                <input type="hidden" name="explanation" value="{{ $entry->explanation }}">
+                            @else
+                                <input type="hidden" name="word" value="{{ $entry->word }}">
+                                <input type="hidden" name="meaning" value="{{ $entry->meaning }}">
+                                <input type="hidden" name="part_of_speech" value="{{ $entry->part_of_speech->value }}">
+                            @endif
+                            <input type="hidden" name="example_en" value="{{ $entry->example_en }}">
+                            <input type="hidden" name="example_ja" value="{{ $entry->example_ja }}">
+                            <input type="hidden" name="is_memorized" value="0">
+                            <label class="flex cursor-pointer items-center gap-1.5 text-xs whitespace-nowrap text-gray-500">
                                 <input
                                     type="checkbox"
                                     name="is_memorized"
@@ -69,90 +66,98 @@
                                     onchange="this.form.requestSubmit()"
                                     @checked($entry->is_memorized)
                                     class="rounded border-gray-300 text-green-600"
-                                    aria-label="覚えた"
                                 >
+                                覚えた
+                            </label>
+                        </form>
+
+                        <div class="flex gap-2">
+                            <button
+                                type="button"
+                                onclick="document.getElementById('edit-{{ $activeTab }}-{{ $entry->id }}').showModal()"
+                                title="編集"
+                                class="rounded-lg border border-blue-200 p-1.5 text-blue-600 hover:bg-blue-50"
+                            >✏️</button>
+
+                            <form action="{{ route($destroyRouteName, $entry) }}" method="POST" onsubmit="return confirm('削除しますか？')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" title="削除" class="rounded-lg border border-red-200 p-1.5 text-red-600 hover:bg-red-50">🗑️</button>
                             </form>
-                        </td>
-                        <td class="py-3 pr-2">
-                            <div class="flex justify-center gap-2">
-                                <button
-                                    type="button"
-                                    onclick="document.getElementById('edit-{{ $activeTab }}-{{ $entry->id }}').showModal()"
-                                    title="編集"
-                                    class="rounded-lg border border-blue-200 p-1.5 text-blue-600 hover:bg-blue-50"
-                                >✏️</button>
+                        </div>
+                    </div>
+                </div>
 
-                                <form action="{{ route($destroyRouteName, $entry) }}" method="POST" onsubmit="return confirm('削除しますか？')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" title="削除" class="rounded-lg border border-red-200 p-1.5 text-red-600 hover:bg-red-50">🗑️</button>
-                                </form>
+                @if ($entry->example_en || $entry->example_ja)
+                    <div class="mt-3 space-y-1 rounded-lg bg-gray-50 px-4 py-3 text-sm">
+                        @if ($entry->example_en)
+                            <p class="text-gray-700"><span class="mr-1 text-xs font-semibold text-gray-400">EN</span>{{ $entry->example_en }}</p>
+                        @endif
+                        @if ($entry->example_ja)
+                            <p class="text-gray-500"><span class="mr-1 text-xs font-semibold text-gray-400">JA</span>{{ $entry->example_ja }}</p>
+                        @endif
+                    </div>
+                @endif
+
+                {{-- 編集モーダル。ブラウザ標準の <dialog> を使い、JSはshowModal/closeの呼び出しのみ --}}
+                <dialog id="edit-{{ $activeTab }}-{{ $entry->id }}" class="w-full max-w-lg rounded-2xl p-6 backdrop:bg-black/40">
+                    <form action="{{ route($updateRouteName, $entry) }}" method="POST" class="space-y-4 text-left">
+                        @csrf
+                        @method('PUT')
+
+                        @if ($activeTab === 'grammar')
+                            <div>
+                                <label class="mb-1 block text-sm font-medium text-gray-700">文法名</label>
+                                <input type="text" name="name" value="{{ $entry->name }}" required class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
                             </div>
+                            <div>
+                                <label class="mb-1 block text-sm font-medium text-gray-700">解説</label>
+                                <input type="text" name="explanation" value="{{ $entry->explanation }}" required class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                            </div>
+                        @else
+                            <div>
+                                <label class="mb-1 block text-sm font-medium text-gray-700">英単語・フレーズ</label>
+                                <input type="text" name="word" value="{{ $entry->word }}" required class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                            </div>
+                            <div>
+                                <label class="mb-1 block text-sm font-medium text-gray-700">意味</label>
+                                <input type="text" name="meaning" value="{{ $entry->meaning }}" required class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                            </div>
+                            <div>
+                                <label class="mb-1 block text-sm font-medium text-gray-700">品詞</label>
+                                <select name="part_of_speech" required class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                                    @foreach (\App\Enums\PartOfSpeech::cases() as $partOfSpeech)
+                                        <option value="{{ $partOfSpeech->value }}" @selected($entry->part_of_speech === $partOfSpeech)>{{ $partOfSpeech->label() }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @endif
 
-                            {{-- 編集モーダル。ブラウザ標準の <dialog> を使い、JSはshowModal/closeの呼び出しのみ --}}
-                            <dialog id="edit-{{ $activeTab }}-{{ $entry->id }}" class="w-full max-w-lg rounded-2xl p-6 backdrop:bg-black/40">
-                                <form action="{{ route($updateRouteName, $entry) }}" method="POST" class="space-y-4 text-left">
-                                    @csrf
-                                    @method('PUT')
+                        <div>
+                            <label class="mb-1 block text-sm font-medium text-gray-700">例文（英語）</label>
+                            <input type="text" name="example_en" value="{{ $entry->example_en }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                        </div>
+                        <div>
+                            <label class="mb-1 block text-sm font-medium text-gray-700">例文（日本語）</label>
+                            <input type="text" name="example_ja" value="{{ $entry->example_ja }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                        </div>
 
-                                    @if ($activeTab === 'grammar')
-                                        <div>
-                                            <label class="mb-1 block text-sm font-medium text-gray-700">文法名</label>
-                                            <input type="text" name="name" value="{{ $entry->name }}" required class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-                                        </div>
-                                        <div>
-                                            <label class="mb-1 block text-sm font-medium text-gray-700">解説</label>
-                                            <input type="text" name="explanation" value="{{ $entry->explanation }}" required class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-                                        </div>
-                                    @else
-                                        <div>
-                                            <label class="mb-1 block text-sm font-medium text-gray-700">英単語・フレーズ</label>
-                                            <input type="text" name="word" value="{{ $entry->word }}" required class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-                                        </div>
-                                        <div>
-                                            <label class="mb-1 block text-sm font-medium text-gray-700">意味</label>
-                                            <input type="text" name="meaning" value="{{ $entry->meaning }}" required class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-                                        </div>
-                                        <div>
-                                            <label class="mb-1 block text-sm font-medium text-gray-700">品詞</label>
-                                            <select name="part_of_speech" required class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-                                                @foreach (\App\Enums\PartOfSpeech::cases() as $partOfSpeech)
-                                                    <option value="{{ $partOfSpeech->value }}" @selected($entry->part_of_speech === $partOfSpeech)>{{ $partOfSpeech->label() }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                    @endif
+                        <label class="flex items-center gap-2 text-sm text-gray-700">
+                            <input type="hidden" name="is_memorized" value="0">
+                            <input type="checkbox" name="is_memorized" value="1" @checked($entry->is_memorized) class="rounded border-gray-300 text-blue-600">
+                            覚えた
+                        </label>
 
-                                    <div>
-                                        <label class="mb-1 block text-sm font-medium text-gray-700">例文（英語）</label>
-                                        <input type="text" name="example_en" value="{{ $entry->example_en }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-                                    </div>
-                                    <div>
-                                        <label class="mb-1 block text-sm font-medium text-gray-700">例文（日本語）</label>
-                                        <input type="text" name="example_ja" value="{{ $entry->example_ja }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-                                    </div>
-
-                                    <label class="flex items-center gap-2 text-sm text-gray-700">
-                                        <input type="hidden" name="is_memorized" value="0">
-                                        <input type="checkbox" name="is_memorized" value="1" @checked($entry->is_memorized) class="rounded border-gray-300 text-blue-600">
-                                        覚えた
-                                    </label>
-
-                                    <div class="flex justify-end gap-2 pt-2">
-                                        <button type="button" onclick="this.closest('dialog').close()" class="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">キャンセル</button>
-                                        <button type="submit" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">更新する</button>
-                                    </div>
-                                </form>
-                            </dialog>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="9" class="py-10 text-center text-gray-400">登録されている項目はありません。</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+                        <div class="flex justify-end gap-2 pt-2">
+                            <button type="button" onclick="this.closest('dialog').close()" class="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">キャンセル</button>
+                            <button type="submit" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">更新する</button>
+                        </div>
+                    </form>
+                </dialog>
+            </div>
+        @empty
+            <p class="py-10 text-center text-gray-400">登録されている項目はありません。</p>
+        @endforelse
     </div>
 
     <div class="mt-6">
