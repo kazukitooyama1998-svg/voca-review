@@ -10,4 +10,4 @@ Route::get('/', [VocabularyController::class, 'index'])->name('vocabularies.inde
 
 Route::resource('vocabularies', VocabularyController::class)->only(['store', 'update', 'destroy']);
 Route::resource('grammars', GrammarController::class)->only(['index', 'store', 'update', 'destroy']);
-Route::resource('study-logs', StudyLogController::class)->only(['index', 'store']);
+Route::resource('study-logs', StudyLogController::class)->only(['store']);

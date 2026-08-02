@@ -5,23 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\StudyLog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
 
 class StudyLogController extends Controller
 {
-    /**
-     * Display the study statistics shown in the page header.
-     */
-    public function index(): View
-    {
-        return view('welcome', [
-            'todayReviewCount' => StudyLog::todayReviewCount(),
-            'streakDays' => StudyLog::currentStreak(),
-            'totalReviewCount' => StudyLog::totalReviewCount(),
-            'lastStudyDate' => StudyLog::lastStudyDate(),
-        ]);
-    }
-
     /**
      * Record that items were reviewed today, incrementing today's count.
      */
