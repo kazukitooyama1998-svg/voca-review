@@ -6,10 +6,19 @@ use App\Enums\PartOfSpeech;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Casts\AsEnumCollection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['word', 'parts_of_speech', 'meaning', 'example_en', 'example_ja', 'is_memorized'])]
+#[Fillable(['word', 'parts_of_speech', 'meaning', 'is_memorized'])]
 class Vocabulary extends Model
 {
+    /**
+     * The example sentences (English/Japanese pairs) registered for this word.
+     */
+    public function examples(): HasMany
+    {
+        return $this->hasMany(VocabularyExample::class)->oldest('id');
+    }
+
     /**
      * Get the attributes that should be cast.
      *

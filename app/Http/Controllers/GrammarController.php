@@ -16,14 +16,17 @@ class GrammarController extends Controller
     public function index(Request $request): View
     {
         $grammars = Grammar::query()
+            ->with('examples')
             ->when($request->filled('keyword'), function ($query) use ($request) {
                 $keyword = $request->string('keyword');
 
                 $query->where(function ($query) use ($keyword) {
                     $query->where('name', 'like', "%{$keyword}%")
                         ->orWhere('explanation', 'like', "%{$keyword}%")
-                        ->orWhere('example_en', 'like', "%{$keyword}%")
-                        ->orWhere('example_ja', 'like', "%{$keyword}%");
+                        ->orWhereHas('examples', function ($query) use ($keyword) {
+                            $query->where('example_en', 'like', "%{$keyword}%")
+                                ->orWhere('example_ja', 'like', "%{$keyword}%");
+                        });
                 });
             })
             ->when($request->input('memorized') === 'memorized', fn ($query) => $query->where('is_memorized', true))
@@ -40,15 +43,11 @@ class GrammarController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'explanation' => ['required', 'string'],
-            'example_en' => ['nullable', 'string'],
-            'example_ja' => ['nullable', 'string'],
-            'is_memorized' => ['boolean'],
-        ]);
+        $validated = $this->validateGrammar($request);
+        $examples = $this->filledExamples($validated);
 
-        Grammar::create($validated);
+        $grammar = Grammar::create($validated);
+        $grammar->examples()->createMany($examples);
 
         return redirect()->route('grammars.index');
     }
@@ -58,15 +57,16 @@ class GrammarController extends Controller
      */
     public function update(Request $request, Grammar $grammar): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'explanation' => ['required', 'string'],
-            'example_en' => ['nullable', 'string'],
-            'example_ja' => ['nullable', 'string'],
-            'is_memorized' => ['boolean'],
-        ]);
+        $validated = $this->validateGrammar($request);
+        $examples = $this->filledExamples($validated);
 
         $grammar->update($validated);
+
+        // Replace all example sentences with the submitted set. Simpler and
+        // safer than diffing rows by id, and cheap since each entry only ever
+        // has a handful of examples.
+        $grammar->examples()->delete();
+        $grammar->examples()->createMany($examples);
 
         return $this->redirectBackToEntry($grammar);
     }
@@ -109,5 +109,38 @@ class GrammarController extends Controller
         $previousUrl = url()->previous(route('grammars.index'));
 
         return redirect($previousUrl.'#entry-grammar-'.$grammar->id);
+    }
+
+    /**
+     * Validate the fields shared by store() and update(), including the
+     * repeatable "examples" rows submitted by the example-fields component.
+     */
+    private function validateGrammar(Request $request): array
+    {
+        return $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'explanation' => ['required', 'string'],
+            'is_memorized' => ['boolean'],
+            'examples' => ['nullable', 'array'],
+            'examples.*.example_en' => ['nullable', 'string'],
+            'examples.*.example_ja' => ['nullable', 'string'],
+        ]);
+    }
+
+    /**
+     * Pull the "examples" rows out of the validated data (the grammars table
+     * no longer has example_en/example_ja columns) and drop any blank row
+     * left over from an unused "add example" slot.
+     */
+    private function filledExamples(array &$validated): array
+    {
+        $examples = collect($validated['examples'] ?? [])
+            ->filter(fn (array $example) => filled($example['example_en'] ?? null) || filled($example['example_ja'] ?? null))
+            ->values()
+            ->all();
+
+        unset($validated['examples']);
+
+        return $examples;
     }
 }

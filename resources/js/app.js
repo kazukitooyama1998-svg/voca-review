@@ -60,3 +60,33 @@ document.addEventListener('click', (event) => {
         speakWord(button.dataset.word);
     }
 });
+
+// 例文の「＋例文を追加」「削除」ボタン用。<template>の中身を複製して行を増減する。
+// name属性の__INDEX__は連番に置き換える必要がある。examples[][example_en]のように
+// 添字なしの[]にすると、PHP側でen/jaのペアが行ごとに正しく対応付かなくなるため。
+document.addEventListener('click', (event) => {
+    const addButton = event.target.closest('[data-add-example]');
+
+    if (addButton) {
+        const wrapper = addButton.closest('[data-example-fields]');
+        const rowsContainer = wrapper.querySelector('[data-example-rows]');
+        const template = wrapper.querySelector('[data-example-template]');
+        const nextIndex = Number(wrapper.dataset.nextIndex);
+
+        const row = template.content.firstElementChild.cloneNode(true);
+        row.querySelectorAll('[name]').forEach((field) => {
+            field.name = field.name.replace('__INDEX__', String(nextIndex));
+        });
+
+        rowsContainer.appendChild(row);
+        wrapper.dataset.nextIndex = String(nextIndex + 1);
+
+        return;
+    }
+
+    const removeButton = event.target.closest('[data-remove-example]');
+
+    if (removeButton) {
+        removeButton.closest('[data-example-row]').remove();
+    }
+});

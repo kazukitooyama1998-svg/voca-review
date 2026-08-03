@@ -18,14 +18,17 @@ class VocabularyController extends Controller
     public function index(Request $request): View
     {
         $vocabularies = Vocabulary::query()
+            ->with('examples')
             ->when($request->filled('keyword'), function ($query) use ($request) {
                 $keyword = $request->string('keyword');
 
                 $query->where(function ($query) use ($keyword) {
                     $query->where('word', 'like', "%{$keyword}%")
                         ->orWhere('meaning', 'like', "%{$keyword}%")
-                        ->orWhere('example_en', 'like', "%{$keyword}%")
-                        ->orWhere('example_ja', 'like', "%{$keyword}%");
+                        ->orWhereHas('examples', function ($query) use ($keyword) {
+                            $query->where('example_en', 'like', "%{$keyword}%")
+                                ->orWhere('example_ja', 'like', "%{$keyword}%");
+                        });
                 });
             })
             ->when($request->filled('part_of_speech'), fn ($query) => $query->whereJsonContains('parts_of_speech', $request->string('part_of_speech')->toString()))
@@ -43,17 +46,11 @@ class VocabularyController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'word' => ['required', 'string', 'max:255'],
-            'parts_of_speech' => ['required', 'array', 'min:1'],
-            'parts_of_speech.*' => [Rule::enum(PartOfSpeech::class)],
-            'meaning' => ['required', 'string'],
-            'example_en' => ['nullable', 'string'],
-            'example_ja' => ['nullable', 'string'],
-            'is_memorized' => ['boolean'],
-        ]);
+        $validated = $this->validateVocabulary($request);
+        $examples = $this->filledExamples($validated);
 
-        Vocabulary::create($validated);
+        $vocabulary = Vocabulary::create($validated);
+        $vocabulary->examples()->createMany($examples);
 
         return redirect()->route('vocabularies.index');
     }
@@ -63,17 +60,16 @@ class VocabularyController extends Controller
      */
     public function update(Request $request, Vocabulary $vocabulary): RedirectResponse
     {
-        $validated = $request->validate([
-            'word' => ['required', 'string', 'max:255'],
-            'parts_of_speech' => ['required', 'array', 'min:1'],
-            'parts_of_speech.*' => [Rule::enum(PartOfSpeech::class)],
-            'meaning' => ['required', 'string'],
-            'example_en' => ['nullable', 'string'],
-            'example_ja' => ['nullable', 'string'],
-            'is_memorized' => ['boolean'],
-        ]);
+        $validated = $this->validateVocabulary($request);
+        $examples = $this->filledExamples($validated);
 
         $vocabulary->update($validated);
+
+        // Replace all example sentences with the submitted set. Simpler and
+        // safer than diffing rows by id, and cheap since each word only ever
+        // has a handful of examples.
+        $vocabulary->examples()->delete();
+        $vocabulary->examples()->createMany($examples);
 
         return $this->redirectBackToEntry($vocabulary);
     }
@@ -116,5 +112,40 @@ class VocabularyController extends Controller
         $previousUrl = url()->previous(route('vocabularies.index'));
 
         return redirect($previousUrl.'#entry-vocabulary-'.$vocabulary->id);
+    }
+
+    /**
+     * Validate the fields shared by store() and update(), including the
+     * repeatable "examples" rows submitted by the example-fields component.
+     */
+    private function validateVocabulary(Request $request): array
+    {
+        return $request->validate([
+            'word' => ['required', 'string', 'max:255'],
+            'parts_of_speech' => ['required', 'array', 'min:1'],
+            'parts_of_speech.*' => [Rule::enum(PartOfSpeech::class)],
+            'meaning' => ['required', 'string'],
+            'is_memorized' => ['boolean'],
+            'examples' => ['nullable', 'array'],
+            'examples.*.example_en' => ['nullable', 'string'],
+            'examples.*.example_ja' => ['nullable', 'string'],
+        ]);
+    }
+
+    /**
+     * Pull the "examples" rows out of the validated data (the vocabularies
+     * table no longer has example_en/example_ja columns) and drop any blank
+     * row left over from an unused "add example" slot.
+     */
+    private function filledExamples(array &$validated): array
+    {
+        $examples = collect($validated['examples'] ?? [])
+            ->filter(fn (array $example) => filled($example['example_en'] ?? null) || filled($example['example_ja'] ?? null))
+            ->values()
+            ->all();
+
+        unset($validated['examples']);
+
+        return $examples;
     }
 }

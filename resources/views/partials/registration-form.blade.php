@@ -67,16 +67,9 @@
             @endif
         </div>
 
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-                <label for="example_en" class="mb-1 block text-sm font-medium text-gray-700">例文（英語）</label>
-                <input type="text" id="example_en" name="example_en" value="{{ old('example_en') }}" placeholder="{{ $activeTab === 'grammar' ? '例) Never have I seen such a beautiful place.' : '例) Showing compassion towards others is important in society.' }}" class="w-full rounded-lg border border-gray-300 py-2 px-3 text-sm text-gray-800 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500">
-            </div>
-
-            <div>
-                <label for="example_ja" class="mb-1 block text-sm font-medium text-gray-700">例文（日本語）</label>
-                <input type="text" id="example_ja" name="example_ja" value="{{ old('example_ja') }}" placeholder="{{ $activeTab === 'grammar' ? '例) こんなに美しい場所を私は今まで見たことがない。' : '例) 他人に思いやりを持つことは社会で重要です。' }}" class="w-full rounded-lg border border-gray-300 py-2 px-3 text-sm text-gray-800 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500">
-            </div>
+        <div>
+            <label class="mb-1 block text-sm font-medium text-gray-700">例文（複数登録可）</label>
+            <x-example-fields :examples="old('examples', [])" />
         </div>
 
         <div class="flex items-center justify-between gap-4">
