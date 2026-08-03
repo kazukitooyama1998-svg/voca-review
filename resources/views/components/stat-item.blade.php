@@ -6,6 +6,6 @@
         <p class="text-lg font-bold text-white">{{ $value }}</p>
     </div>
     @if ($icon)
-        <span class="text-xl text-blue-200" aria-hidden="true">{{ $icon }}</span>
+        <i class="{{ $icon }} text-xl text-white" aria-hidden="true"></i>
     @endif
 </div>

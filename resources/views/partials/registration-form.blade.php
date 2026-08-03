@@ -4,7 +4,7 @@
 
 <div class="rounded-2xl border border-blue-100 bg-blue-50/60 p-6 shadow-sm">
     <h2 class="mb-4 flex items-center gap-2 text-base font-bold text-blue-700">
-        <span aria-hidden="true">➕</span> 新しく追加する
+        <i class="fa-solid fa-plus" aria-hidden="true"></i> 新しく追加する
     </h2>
 
     <form action="{{ route($storeRouteName) }}" method="POST" class="space-y-4">
@@ -78,7 +78,7 @@
             </label>
 
             <button type="submit" class="rounded-lg bg-blue-600 px-6 py-2 text-sm font-semibold text-white hover:bg-blue-700">
-                <span aria-hidden="true">➕</span> 追加する
+                <i class="fa-solid fa-plus" aria-hidden="true"></i> 追加する
             </button>
         </div>
     </form>

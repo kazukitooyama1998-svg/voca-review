@@ -83,13 +83,13 @@
                                 type="button"
                                 onclick="document.getElementById('edit-{{ $activeTab }}-{{ $entry->id }}').showModal()"
                                 title="編集"
-                                class="rounded-lg border border-blue-200 p-1.5 text-blue-600 hover:bg-blue-50"
-                            >✏️</button>
+                                class="rounded-lg border border-blue-300 p-1.5 text-blue-700 hover:bg-blue-50"
+                            ><i class="fa-solid fa-pen"></i></button>
 
                             <form action="{{ route($destroyRouteName, $entry) }}" method="POST" onsubmit="return confirm('削除しますか？')">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" title="削除" class="rounded-lg border border-red-200 p-1.5 text-red-600 hover:bg-red-50">🗑️</button>
+                                <button type="submit" title="削除" class="rounded-lg border border-red-300 p-1.5 text-red-700 hover:bg-red-50"><i class="fa-solid fa-trash"></i></button>
                             </form>
                         </div>
                     </div>
