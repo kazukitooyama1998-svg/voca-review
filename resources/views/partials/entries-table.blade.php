@@ -11,7 +11,7 @@
          例文（英語・日本語）を縦に並べることで、横幅に依存せず最初から全項目が見えるようにする --}}
     <div class="divide-y divide-gray-100">
         @forelse ($entries as $entry)
-            <div class="py-5">
+            <div id="entry-{{ $activeTab }}-{{ $entry->id }}" class="py-5">
                 <div class="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
                     <div class="flex min-w-0 items-start gap-3">
                         <x-type-badge :type="$activeTab" class="mt-0.5 shrink-0" />

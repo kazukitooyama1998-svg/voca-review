@@ -68,7 +68,7 @@ class GrammarController extends Controller
 
         $grammar->update($validated);
 
-        return redirect()->route('grammars.index');
+        return $this->redirectBackToEntry($grammar);
     }
 
     /**
@@ -96,6 +96,18 @@ class GrammarController extends Controller
 
         $grammar->save();
 
-        return redirect()->route('grammars.index');
+        return $this->redirectBackToEntry($grammar);
+    }
+
+    /**
+     * Redirect back to the page the request came from (keeping the current
+     * search/filter/pagination), scrolled to this entry via a URL fragment,
+     * instead of always jumping to the top of a fresh grammars.index request.
+     */
+    private function redirectBackToEntry(Grammar $grammar): RedirectResponse
+    {
+        $previousUrl = url()->previous(route('grammars.index'));
+
+        return redirect($previousUrl.'#entry-grammar-'.$grammar->id);
     }
 }

@@ -73,7 +73,7 @@ class VocabularyController extends Controller
 
         $vocabulary->update($validated);
 
-        return redirect()->route('vocabularies.index');
+        return $this->redirectBackToEntry($vocabulary);
     }
 
     /**
@@ -101,6 +101,18 @@ class VocabularyController extends Controller
 
         $vocabulary->save();
 
-        return redirect()->route('vocabularies.index');
+        return $this->redirectBackToEntry($vocabulary);
+    }
+
+    /**
+     * Redirect back to the page the request came from (keeping the current
+     * search/filter/pagination), scrolled to this entry via a URL fragment,
+     * instead of always jumping to the top of a fresh vocabularies.index request.
+     */
+    private function redirectBackToEntry(Vocabulary $vocabulary): RedirectResponse
+    {
+        $previousUrl = url()->previous(route('vocabularies.index'));
+
+        return redirect($previousUrl.'#entry-vocabulary-'.$vocabulary->id);
     }
 }
