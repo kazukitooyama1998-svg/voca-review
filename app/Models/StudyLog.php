@@ -43,9 +43,9 @@ class StudyLog extends Model
      */
     public static function lastStudyDate(): ?Carbon
     {
-        // max() is an aggregate query, so it returns the raw column value
-        // (a string), not a value cast through the model's date cast.
-        $date = static::max('study_date');
+        // review_count = 0の行（チェックを入れてすぐ外した等）は実際の学習記録ではないため除外する。
+        // max() は集計クエリなので、モデルのdateキャストを通らない生のカラム値が返る。
+        $date = static::where('review_count', '>', 0)->max('study_date');
 
         return $date ? Carbon::parse($date) : null;
     }
