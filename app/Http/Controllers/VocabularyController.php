@@ -28,7 +28,7 @@ class VocabularyController extends Controller
                         ->orWhere('example_ja', 'like', "%{$keyword}%");
                 });
             })
-            ->when($request->filled('part_of_speech'), fn ($query) => $query->where('part_of_speech', $request->string('part_of_speech')))
+            ->when($request->filled('part_of_speech'), fn ($query) => $query->whereJsonContains('parts_of_speech', $request->string('part_of_speech')->toString()))
             ->when($request->input('memorized') === 'memorized', fn ($query) => $query->where('is_memorized', true))
             ->when($request->input('memorized') === 'unmemorized', fn ($query) => $query->where('is_memorized', false))
             ->when($request->input('sort') === 'oldest', fn ($query) => $query->oldest(), fn ($query) => $query->latest())
@@ -45,7 +45,8 @@ class VocabularyController extends Controller
     {
         $validated = $request->validate([
             'word' => ['required', 'string', 'max:255'],
-            'part_of_speech' => ['required', Rule::enum(PartOfSpeech::class)],
+            'parts_of_speech' => ['required', 'array', 'min:1'],
+            'parts_of_speech.*' => [Rule::enum(PartOfSpeech::class)],
             'meaning' => ['required', 'string'],
             'example_en' => ['nullable', 'string'],
             'example_ja' => ['nullable', 'string'],
@@ -64,7 +65,8 @@ class VocabularyController extends Controller
     {
         $validated = $request->validate([
             'word' => ['required', 'string', 'max:255'],
-            'part_of_speech' => ['required', Rule::enum(PartOfSpeech::class)],
+            'parts_of_speech' => ['required', 'array', 'min:1'],
+            'parts_of_speech.*' => [Rule::enum(PartOfSpeech::class)],
             'meaning' => ['required', 'string'],
             'example_en' => ['nullable', 'string'],
             'example_ja' => ['nullable', 'string'],

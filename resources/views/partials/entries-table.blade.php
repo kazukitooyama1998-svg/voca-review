@@ -26,7 +26,7 @@
                                         title="発音を再生"
                                         aria-label="発音を再生"
                                     ><i class="fa-solid fa-volume fa-fw"></i></button>
-                                    <span class="text-xs text-gray-500">{{ $entry->part_of_speech->label() }}</span>
+                                    <span class="text-xs text-gray-500">{{ $entry->partsOfSpeechLabel() }}</span>
                                 @endif
                             </p>
                             <p class="mt-1 text-sm text-gray-600">{{ $activeTab === 'grammar' ? $entry->explanation : $entry->meaning }}</p>
@@ -60,7 +60,9 @@
                             @else
                                 <input type="hidden" name="word" value="{{ $entry->word }}">
                                 <input type="hidden" name="meaning" value="{{ $entry->meaning }}">
-                                <input type="hidden" name="part_of_speech" value="{{ $entry->part_of_speech->value }}">
+                                @foreach ($entry->parts_of_speech as $partOfSpeech)
+                                    <input type="hidden" name="parts_of_speech[]" value="{{ $partOfSpeech->value }}">
+                                @endforeach
                             @endif
                             <input type="hidden" name="example_en" value="{{ $entry->example_en }}">
                             <input type="hidden" name="example_ja" value="{{ $entry->example_ja }}">
@@ -131,12 +133,21 @@
                                 <input type="text" name="meaning" value="{{ $entry->meaning }}" required class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
                             </div>
                             <div>
-                                <label class="mb-1 block text-sm font-medium text-gray-700">品詞</label>
-                                <select name="part_of_speech" required class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                                <label class="mb-1 block text-sm font-medium text-gray-700">品詞（複数選択可）</label>
+                                <div class="flex flex-wrap gap-x-4 gap-y-2 rounded-lg border border-gray-300 px-3 py-2">
                                     @foreach (\App\Enums\PartOfSpeech::cases() as $partOfSpeech)
-                                        <option value="{{ $partOfSpeech->value }}" @selected($entry->part_of_speech === $partOfSpeech)>{{ $partOfSpeech->label() }}</option>
+                                        <label class="flex items-center gap-1.5 text-sm text-gray-700">
+                                            <input
+                                                type="checkbox"
+                                                name="parts_of_speech[]"
+                                                value="{{ $partOfSpeech->value }}"
+                                                @checked($entry->parts_of_speech->contains($partOfSpeech))
+                                                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                            >
+                                            {{ $partOfSpeech->label() }}
+                                        </label>
                                     @endforeach
-                                </select>
+                                </div>
                             </div>
                         @endif
 

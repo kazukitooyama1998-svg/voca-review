@@ -45,15 +45,24 @@
                     @error('meaning') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
 
-                <div>
-                    <label for="part_of_speech" class="mb-1 block text-sm font-medium text-gray-700">品詞 <span class="text-red-500">*</span></label>
-                    <select id="part_of_speech" name="part_of_speech" class="w-full rounded-lg border border-gray-300 py-2 px-3 text-sm text-gray-800 focus:border-blue-500 focus:ring-blue-500">
-                        <option value="" disabled {{ old('part_of_speech') ? '' : 'selected' }}>例) Noun (名詞)</option>
+                <div class="sm:col-span-2">
+                    <label class="mb-1 block text-sm font-medium text-gray-700">品詞（複数選択可） <span class="text-red-500">*</span></label>
+                    <div class="flex flex-wrap gap-x-4 gap-y-2 rounded-lg border border-gray-300 px-3 py-2">
                         @foreach (\App\Enums\PartOfSpeech::cases() as $partOfSpeech)
-                            <option value="{{ $partOfSpeech->value }}" @selected(old('part_of_speech') === $partOfSpeech->value)>{{ $partOfSpeech->label() }}</option>
+                            <label class="flex items-center gap-1.5 text-sm text-gray-700">
+                                <input
+                                    type="checkbox"
+                                    name="parts_of_speech[]"
+                                    value="{{ $partOfSpeech->value }}"
+                                    @checked(collect(old('parts_of_speech'))->contains($partOfSpeech->value))
+                                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                >
+                                {{ $partOfSpeech->label() }}
+                            </label>
                         @endforeach
-                    </select>
-                    @error('part_of_speech') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                    </div>
+                    @error('parts_of_speech') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                    @error('parts_of_speech.*') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
             @endif
         </div>
