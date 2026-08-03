@@ -12,7 +12,7 @@ A single-user (no auth/login) English self-study app replacing a spreadsheet, fo
 
 Per the spec (README.md §5–7), the eventual data model is three resources, each with plain RESTful CRUD:
 
-- **Vocabulary/phrase** (単語・フレーズ): word/phrase, part of speech (dropdown: Noun/Verb/Adjective/Adverb/Pronoun/Preposition/Conjunction/Interjection), meaning, English example sentence, Japanese example sentence, learned/not-learned flag.
+- **Vocabulary/phrase** (単語・フレーズ): word/phrase, part of speech (dropdown: Noun/Verb/Adjective/Adverb/Pronoun/Preposition/Conjunction/Interjection), meaning, English example sentence, Japanese example sentence, learned/not-learned flag, pronunciation playback (speaker button, vocabulary only — see "Pronunciation playback" below).
 - **Grammar** (文法): name, explanation, English example, Japanese example, learned/not-learned flag.
 - **Study log** (学習記録): date, review count — written once 100 items have been reviewed in a day; drives "today's review count / streak days / total reviews / last study date" stats shown in the header.
 
@@ -60,6 +60,7 @@ php artisan make:model Xxx -mfc   # model + migration + factory + controller
 - **No auth**: the spec explicitly excludes login/registration. Don't add Breeze/Fortify/Jetstream or gate routes behind auth middleware.
 - **Routing**: build resources with Laravel's standard RESTful `Route::resource` conventions (per README §6) — one resource each for vocabulary/phrase, grammar, and study log.
 - Controllers/Models don't exist yet beyond the default `App\Models\User` — when adding the vocabulary/grammar/study-log features, create the Migration → Model → Controller → routes → Blade views in that order, matching the dev schedule in README §12.
+- **Pronunciation playback**: each vocabulary card has a 🔊 button that speaks the word aloud via the browser's built-in Web Speech API (`SpeechSynthesis`) — free, no API key, no external service. Logic lives in `resources/js/app.js`: a single delegated `click` listener on `document` (matching `.speak-btn`) calls `speakWord()`, which sets `utterance.lang = 'en-US'` and explicitly picks an `en-US` voice from `speechSynthesis.getVoices()` (falling back to any `en-*` voice). The explicit voice pick matters because without it, browsers often default to a low-quality or wrong-accent voice. Voice lists load asynchronously in some browsers, so the picked voice is refreshed on the `voiceschanged` event. Grammar entries intentionally have no speaker button (per spec, audio is vocabulary-only).
 
 ---
 
@@ -197,6 +198,8 @@ The application consists of three resources:
 - Example Sentence (English)
 - Example Sentence (Japanese)
 - Memorized (boolean)
+- Studied At (nullable timestamp — "studied today" is derived by checking whether this is today's date; toggling it increments/decrements today's Study Log review count)
+- Pronunciation playback (not a stored field — a 🔊 button that reads the `word` aloud client-side via Web Speech API; see "Pronunciation playback" under Architecture notes)
 
 ### Grammar Fields
 
@@ -205,6 +208,7 @@ The application consists of three resources:
 - Example Sentence (English)
 - Example Sentence (Japanese)
 - Memorized (boolean)
+- Studied At (same semantics as Vocabulary)
 
 ### Study Log Fields
 

@@ -102,6 +102,7 @@ The Laravel framework is open-sourced software licensed under the [MIT license](
 - 例文（英語）
 - 例文（日本語）
 - 覚えた／未習得
+- 発音再生（🔊ボタン。Web Speech APIでアメリカ英語（en-US）の音声を再生。文法には無し）
 
 ### 文法（Grammar）
 
@@ -179,6 +180,8 @@ The Laravel framework is open-sourced software licensed under the [MIT license](
 
 1日に100項目（単語・フレーズ・文法）を復習したら学習記録を保存する。
 
+一覧の各項目に「学習した」チェックボックスを設け、チェックした瞬間にその日の復習数へ+1する（誤ってチェックした場合は外すと-1）。このフラグは「当日中に学習したか」を表し、日付が変わると自動的に未チェック状態に戻るため、翌日また同じ項目をチェックすればその日の復習としてカウントされる。
+
 表示内容
 
 - 今日の復習数
@@ -196,6 +199,7 @@ The Laravel framework is open-sourced software licensed under the [MIT license](
 - MySQL
 - JavaScript（必要最低限）
 - レスポンシブ対応（PC・スマートフォン）
+- 音声読み上げ：ブラウザ標準のWeb Speech API（`SpeechSynthesis`）を使用し、外部サービス・APIキー・追加コストなしで実装する。単語・フレーズの発音のみ対象（文法には音声機能は設けない）。
 
 ---
 
@@ -230,6 +234,7 @@ Laravel Eloquentを利用した設計とする。
 - 例文（英語）
 - 例文（日本語）
 - 覚えたかどうか
+- 学習した日時（当日分のみ「学習した」チェックの判定・学習記録の加算に使用）
 - 作成日時
 - 更新日時
 
@@ -240,6 +245,7 @@ Laravel Eloquentを利用した設計とする。
 - 例文（英語）
 - 例文（日本語）
 - 覚えたかどうか
+- 学習した日時（当日分のみ「学習した」チェックの判定・学習記録の加算に使用）
 - 作成日時
 - 更新日時
 

@@ -19,6 +19,13 @@
                             <p class="flex flex-wrap items-baseline gap-x-2">
                                 <span class="text-base font-semibold text-gray-800">{{ $activeTab === 'grammar' ? $entry->name : $entry->word }}</span>
                                 @if ($activeTab === 'vocabulary')
+                                    <button
+                                        type="button"
+                                        class="speak-btn text-blue-500 hover:text-blue-700"
+                                        data-word="{{ $entry->word }}"
+                                        title="発音を再生"
+                                        aria-label="発音を再生"
+                                    ><i class="fa-solid fa-volume"></i></button>
                                     <span class="text-xs text-gray-500">{{ $entry->part_of_speech->label() }}</span>
                                 @endif
                             </p>
