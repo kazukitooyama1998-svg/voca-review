@@ -25,7 +25,7 @@
                                         data-word="{{ $entry->word }}"
                                         title="発音を再生"
                                         aria-label="発音を再生"
-                                    ><i class="fa-solid fa-volume"></i></button>
+                                    ><i class="fa-solid fa-volume fa-fw"></i></button>
                                     <span class="text-xs text-gray-500">{{ $entry->part_of_speech->label() }}</span>
                                 @endif
                             </p>
@@ -84,12 +84,12 @@
                                 onclick="document.getElementById('edit-{{ $activeTab }}-{{ $entry->id }}').showModal()"
                                 title="編集"
                                 class="rounded-lg border border-blue-300 p-1.5 text-blue-700 hover:bg-blue-50"
-                            ><i class="fa-solid fa-pen"></i></button>
+                            ><i class="fa-solid fa-pen fa-fw"></i></button>
 
                             <form action="{{ route($destroyRouteName, $entry) }}" method="POST" onsubmit="return confirm('削除しますか？')">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" title="削除" class="rounded-lg border border-red-300 p-1.5 text-red-700 hover:bg-red-50"><i class="fa-solid fa-trash"></i></button>
+                                <button type="submit" title="削除" class="rounded-lg border border-red-300 p-1.5 text-red-700 hover:bg-red-50"><i class="fa-solid fa-trash fa-fw"></i></button>
                             </form>
                         </div>
                     </div>

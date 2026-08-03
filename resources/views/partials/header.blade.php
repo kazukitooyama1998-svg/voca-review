@@ -11,10 +11,10 @@
         </a>
 
         <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
-            <x-stat-item label="今日の復習数" value="{{ $todayReviewCount }} / {{ $todayReviewGoal }}" icon="fa-solid fa-calendar-day" />
-            <x-stat-item label="連続学習日数" value="{{ $streakDays }}日" icon="fa-solid fa-fire" />
+            <x-stat-item label="今日の復習数" value="{{ $todayReviewCount }} / {{ $todayReviewGoal }}" icon="fa-solid fa-calendar-day fa-fw" />
+            <x-stat-item label="連続学習日数" value="{{ $streakDays }}日" icon="fa-solid fa-fire fa-fw" />
             <x-stat-item label="総復習回数" value="{{ number_format($totalReviewCount) }}件" />
-            <x-stat-item label="最終学習日" value="{{ $lastStudyDate?->format('Y/m/d') ?? '記録なし' }}" icon="fa-solid fa-calendar-day" />
+            <x-stat-item label="最終学習日" value="{{ $lastStudyDate?->format('Y/m/d') ?? '記録なし' }}" icon="fa-solid fa-calendar-day fa-fw" />
         </div>
     </div>
 </header>
