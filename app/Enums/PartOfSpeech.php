@@ -12,6 +12,7 @@ enum PartOfSpeech: string
     case Preposition = 'preposition';
     case Conjunction = 'conjunction';
     case Interjection = 'interjection';
+    case Idiom = 'idiom';
 
     /**
      * Japanese label used in the UI, e.g. "Noun (名詞)".
@@ -27,6 +28,7 @@ enum PartOfSpeech: string
             self::Preposition => 'Preposition (前置詞)',
             self::Conjunction => 'Conjunction (接続詞)',
             self::Interjection => 'Interjection (感動詞)',
+            self::Idiom => 'Idiom (イディオム)',
         };
     }
 }
