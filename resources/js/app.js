@@ -61,6 +61,17 @@ document.addEventListener('click', (event) => {
     }
 });
 
+// 「学習した」「覚えた」チェックボックスはページ全体を再読み込みして送信するため、
+// 送信直前にスクロール位置を保存しておく。復元はこのスクリプト（<script type="module">
+// なのでDOM解析後まで実行が遅れる）ではなく、layouts/app.blade.php末尾の同期的な
+// インラインスクリプトで行う。ここで復元すると、一瞬先頭にジャンプしてから正しい位置へ
+// 戻るチラつきが起きてしまうため。
+document.addEventListener('change', (event) => {
+    if (event.target.matches('[data-preserve-scroll]')) {
+        sessionStorage.setItem('vocareview:scrollY', String(window.scrollY));
+    }
+});
+
 // 例文の「＋例文を追加」「削除」ボタン用。<template>の中身を複製して行を増減する。
 // name属性の__INDEX__は連番に置き換える必要がある。examples[][example_en]のように
 // 添字なしの[]にすると、PHP側でen/jaのペアが行ごとに正しく対応付かなくなるため。

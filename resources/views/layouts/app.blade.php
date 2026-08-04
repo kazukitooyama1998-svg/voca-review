@@ -18,5 +18,21 @@
         </main>
 
         @include('partials.footer')
+
+        {{-- 「学習した」「覚えた」チェックボックスの送信で画面が動かないようにするための
+             スクロール位置復元。DOMがほぼ描画され終わったこの時点で同期的に実行することで、
+             app.js（<script type="module">は解析完了後まで実行が遅れる）で復元するより早く、
+             チラつきなく元の位置へ戻せる。 --}}
+        <script>
+            (function () {
+                var key = 'vocareview:scrollY';
+                var savedScrollY = sessionStorage.getItem(key);
+
+                if (savedScrollY !== null) {
+                    sessionStorage.removeItem(key);
+                    window.scrollTo(0, Number(savedScrollY));
+                }
+            })();
+        </script>
     </body>
 </html>

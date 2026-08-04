@@ -71,7 +71,7 @@ class VocabularyController extends Controller
         $vocabulary->examples()->delete();
         $vocabulary->examples()->createMany($examples);
 
-        return $this->redirectBackToEntry($vocabulary);
+        return $this->redirectBackToEntry();
     }
 
     /**
@@ -99,19 +99,20 @@ class VocabularyController extends Controller
 
         $vocabulary->save();
 
-        return $this->redirectBackToEntry($vocabulary);
+        return $this->redirectBackToEntry();
     }
 
     /**
      * Redirect back to the page the request came from (keeping the current
-     * search/filter/pagination), scrolled to this entry via a URL fragment,
-     * instead of always jumping to the top of a fresh vocabularies.index request.
+     * search/filter/pagination), instead of always jumping to the top of a
+     * fresh vocabularies.index request. The scroll position itself is
+     * restored client-side (see resources/js/app.js) — a URL fragment isn't
+     * used here because the browser's own "scroll to fragment" behavior can
+     * re-fire after that restore and override it.
      */
-    private function redirectBackToEntry(Vocabulary $vocabulary): RedirectResponse
+    private function redirectBackToEntry(): RedirectResponse
     {
-        $previousUrl = url()->previous(route('vocabularies.index'));
-
-        return redirect($previousUrl.'#entry-vocabulary-'.$vocabulary->id);
+        return redirect(url()->previous(route('vocabularies.index')));
     }
 
     /**

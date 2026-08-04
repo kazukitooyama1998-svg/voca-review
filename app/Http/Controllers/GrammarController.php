@@ -68,7 +68,7 @@ class GrammarController extends Controller
         $grammar->examples()->delete();
         $grammar->examples()->createMany($examples);
 
-        return $this->redirectBackToEntry($grammar);
+        return $this->redirectBackToEntry();
     }
 
     /**
@@ -96,19 +96,20 @@ class GrammarController extends Controller
 
         $grammar->save();
 
-        return $this->redirectBackToEntry($grammar);
+        return $this->redirectBackToEntry();
     }
 
     /**
      * Redirect back to the page the request came from (keeping the current
-     * search/filter/pagination), scrolled to this entry via a URL fragment,
-     * instead of always jumping to the top of a fresh grammars.index request.
+     * search/filter/pagination), instead of always jumping to the top of a
+     * fresh grammars.index request. The scroll position itself is restored
+     * client-side (see resources/js/app.js) — a URL fragment isn't used here
+     * because the browser's own "scroll to fragment" behavior can re-fire
+     * after that restore and override it.
      */
-    private function redirectBackToEntry(Grammar $grammar): RedirectResponse
+    private function redirectBackToEntry(): RedirectResponse
     {
-        $previousUrl = url()->previous(route('grammars.index'));
-
-        return redirect($previousUrl.'#entry-grammar-'.$grammar->id);
+        return redirect(url()->previous(route('grammars.index')));
     }
 
     /**

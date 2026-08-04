@@ -45,6 +45,7 @@
                                     onchange="this.form.requestSubmit()"
                                     @checked($entry->studied_at?->isToday())
                                     class="rounded border-gray-300 text-blue-600"
+                                    data-preserve-scroll
                                 >
                                 学習した
                             </label>
@@ -77,6 +78,7 @@
                                     onchange="this.form.requestSubmit()"
                                     @checked($entry->is_memorized)
                                     class="rounded border-gray-300 text-green-600"
+                                    data-preserve-scroll
                                 >
                                 覚えた
                             </label>
