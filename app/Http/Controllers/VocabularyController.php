@@ -67,7 +67,7 @@ class VocabularyController extends Controller
     {
         $vocabulary->delete();
 
-        return redirect()->route('vocabularies.index');
+        return $this->redirectBackToEntry();
     }
 
     /**

@@ -67,7 +67,7 @@
                     <div class="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 self-end sm:self-auto">
                         {{-- 「今日すでに学習したか」を表すフラグ。チェックすると学習記録（今日の復習数）に+1、外すと-1。
                              studied_atが「今日」かどうかで判定するため、日付が変わると自動的に未チェックへ戻る --}}
-                        <form action="{{ route($toggleStudiedRouteName, $entry) }}" method="POST">
+                        <form action="{{ route($toggleStudiedRouteName, $entry) }}" method="POST" data-preserve-scroll>
                             @csrf
                             @method('PATCH')
                             <label class="flex cursor-pointer items-center gap-1.5 text-xs whitespace-nowrap text-gray-500">
@@ -76,14 +76,13 @@
                                     onchange="this.form.requestSubmit()"
                                     @checked($entry->studied_at?->isToday())
                                     class="rounded border-gray-300 text-blue-600"
-                                    data-preserve-scroll
                                 >
                                 学習した
                             </label>
                         </form>
 
                         {{-- チェックのon/offだけで即座に更新する。他の必須項目は現在値をhiddenで引き継ぐ --}}
-                        <form action="{{ route($updateRouteName, $entry) }}" method="POST">
+                        <form action="{{ route($updateRouteName, $entry) }}" method="POST" data-preserve-scroll>
                             @csrf
                             @method('PUT')
                             @if ($activeTab === 'grammar')
@@ -109,7 +108,6 @@
                                     onchange="this.form.requestSubmit()"
                                     @checked($entry->is_memorized)
                                     class="rounded border-gray-300 text-green-600"
-                                    data-preserve-scroll
                                 >
                                 覚えた
                             </label>
@@ -123,11 +121,12 @@
                                 class="rounded-lg border border-blue-300 p-1.5 text-blue-700 hover:bg-blue-50"
                             ><i class="fa-solid fa-pen fa-fw"></i></button>
 
-                            <form action="{{ route($destroyRouteName, $entry) }}" method="POST" onsubmit="return confirm('削除しますか？')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" title="削除" class="rounded-lg border border-red-300 p-1.5 text-red-700 hover:bg-red-50"><i class="fa-solid fa-trash fa-fw"></i></button>
-                            </form>
+                            <button
+                                type="button"
+                                onclick="document.getElementById('delete-confirm-{{ $activeTab }}-{{ $entry->id }}').showModal()"
+                                title="削除"
+                                class="rounded-lg border border-red-300 p-1.5 text-red-700 hover:bg-red-50"
+                            ><i class="fa-solid fa-trash fa-fw"></i></button>
                         </div>
                     </div>
                 </div>
@@ -148,8 +147,8 @@
                 @endif
 
                 {{-- 編集モーダル。ブラウザ標準の <dialog> を使い、JSはshowModal/closeの呼び出しのみ --}}
-                <dialog id="edit-{{ $activeTab }}-{{ $entry->id }}" class="w-full max-w-lg rounded-2xl p-6 backdrop:bg-black/40">
-                    <form action="{{ route($updateRouteName, $entry) }}" method="POST" class="space-y-4 text-left">
+                <dialog id="edit-{{ $activeTab }}-{{ $entry->id }}" class="m-auto max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-2xl p-6 backdrop:bg-black/40">
+                    <form action="{{ route($updateRouteName, $entry) }}" method="POST" class="space-y-4 text-left" data-preserve-scroll>
                         @csrf
                         @method('PUT')
 
@@ -205,6 +204,21 @@
                             <button type="button" onclick="this.closest('dialog').close()" class="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">キャンセル</button>
                             <button type="submit" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">更新する</button>
                         </div>
+                    </form>
+                </dialog>
+
+                {{-- 削除確認モーダル。ブラウザ標準のconfirm()はデザインが崩れる上に自動化ツール等で
+                     処理が固まることもあるため、編集モーダルと同じ<dialog>ベースの確認画面にする --}}
+                <dialog id="delete-confirm-{{ $activeTab }}-{{ $entry->id }}" class="m-auto w-full max-w-sm rounded-2xl p-6 backdrop:bg-black/40">
+                    <p class="text-sm text-gray-700">
+                        <span class="font-semibold text-gray-900">{{ $activeTab === 'grammar' ? $entry->name : $entry->word }}</span> を削除しますか？<br>
+                        この操作は取り消せません。
+                    </p>
+                    <form action="{{ route($destroyRouteName, $entry) }}" method="POST" class="mt-5 flex justify-end gap-2" data-preserve-scroll>
+                        @csrf
+                        @method('DELETE')
+                        <button type="button" onclick="this.closest('dialog').close()" class="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">キャンセル</button>
+                        <button type="submit" class="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700">削除する</button>
                     </form>
                 </dialog>
             </div>

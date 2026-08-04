@@ -65,7 +65,7 @@ class GrammarController extends Controller
     {
         $grammar->delete();
 
-        return redirect()->route('grammars.index');
+        return $this->redirectBackToEntry();
     }
 
     /**

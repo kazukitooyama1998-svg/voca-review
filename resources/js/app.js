@@ -61,12 +61,12 @@ document.addEventListener('click', (event) => {
     }
 });
 
-// 「学習した」「覚えた」チェックボックスはページ全体を再読み込みして送信するため、
-// 送信直前にスクロール位置を保存しておく。復元はこのスクリプト（<script type="module">
-// なのでDOM解析後まで実行が遅れる）ではなく、layouts/app.blade.php末尾の同期的な
-// インラインスクリプトで行う。ここで復元すると、一瞬先頭にジャンプしてから正しい位置へ
-// 戻るチラつきが起きてしまうため。
-document.addEventListener('change', (event) => {
+// data-preserve-scroll を付けたフォーム（学習した/覚えたのチェック、編集、削除）は
+// ページ全体を再読み込みして送信するため、送信直前にスクロール位置を保存しておく。
+// 復元はこのスクリプト（<script type="module">なのでDOM解析後まで実行が遅れる）では
+// なく、layouts/app.blade.php末尾の同期的なインラインスクリプトで行う。ここで復元
+// すると、一瞬先頭にジャンプしてから正しい位置へ戻るチラつきが起きてしまうため。
+document.addEventListener('submit', (event) => {
     if (event.target.matches('[data-preserve-scroll]')) {
         sessionStorage.setItem('vocareview:scrollY', String(window.scrollY));
     }
