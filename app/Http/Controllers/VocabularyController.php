@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\PartOfSpeech;
 use App\Models\StudyLog;
 use App\Models\Vocabulary;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -17,23 +18,8 @@ class VocabularyController extends Controller
      */
     public function index(Request $request): View
     {
-        $vocabularies = Vocabulary::query()
+        $vocabularies = $this->filteredQuery($request)
             ->with('examples')
-            ->when($request->filled('keyword'), function ($query) use ($request) {
-                $keyword = $request->string('keyword');
-
-                $query->where(function ($query) use ($keyword) {
-                    $query->where('word', 'like', "%{$keyword}%")
-                        ->orWhere('meaning', 'like', "%{$keyword}%")
-                        ->orWhereHas('examples', function ($query) use ($keyword) {
-                            $query->where('example_en', 'like', "%{$keyword}%")
-                                ->orWhere('example_ja', 'like', "%{$keyword}%");
-                        });
-                });
-            })
-            ->when($request->filled('part_of_speech'), fn ($query) => $query->whereJsonContains('parts_of_speech', $request->string('part_of_speech')->toString()))
-            ->when($request->input('memorized') === 'memorized', fn ($query) => $query->where('is_memorized', true))
-            ->when($request->input('memorized') === 'unmemorized', fn ($query) => $query->where('is_memorized', false))
             ->when($request->input('sort') === 'oldest', fn ($query) => $query->oldest(), fn ($query) => $query->latest())
             ->paginate(20)
             ->withQueryString();
@@ -100,6 +86,61 @@ class VocabularyController extends Controller
         $vocabulary->save();
 
         return $this->redirectBackToEntry();
+    }
+
+    /**
+     * Clear the "studied today" flag on every vocabulary matching the
+     * current search/filter (the "学習した" bulk-clear button above the list).
+     */
+    public function clearStudied(Request $request): RedirectResponse
+    {
+        $studiedTodayIds = $this->filteredQuery($request)
+            ->whereDate('studied_at', today())
+            ->pluck('id');
+
+        if ($studiedTodayIds->isNotEmpty()) {
+            Vocabulary::whereIn('id', $studiedTodayIds)->update(['studied_at' => null]);
+            StudyLog::undoReviews($studiedTodayIds->count());
+        }
+
+        return $this->redirectBackToEntry();
+    }
+
+    /**
+     * Clear the "memorized" flag on every vocabulary matching the current
+     * search/filter (the "覚えた" bulk-clear button above the list).
+     */
+    public function clearMemorized(Request $request): RedirectResponse
+    {
+        $this->filteredQuery($request)
+            ->where('is_memorized', true)
+            ->update(['is_memorized' => false]);
+
+        return $this->redirectBackToEntry();
+    }
+
+    /**
+     * The search/filter conditions shared by index() and the bulk-clear
+     * actions, so "clear" always matches exactly what's currently shown.
+     */
+    private function filteredQuery(Request $request): Builder
+    {
+        return Vocabulary::query()
+            ->when($request->filled('keyword'), function ($query) use ($request) {
+                $keyword = $request->string('keyword');
+
+                $query->where(function ($query) use ($keyword) {
+                    $query->where('word', 'like', "%{$keyword}%")
+                        ->orWhere('meaning', 'like', "%{$keyword}%")
+                        ->orWhereHas('examples', function ($query) use ($keyword) {
+                            $query->where('example_en', 'like', "%{$keyword}%")
+                                ->orWhere('example_ja', 'like', "%{$keyword}%");
+                        });
+                });
+            })
+            ->when($request->filled('part_of_speech'), fn ($query) => $query->whereJsonContains('parts_of_speech', $request->string('part_of_speech')->toString()))
+            ->when($request->input('memorized') === 'memorized', fn ($query) => $query->where('is_memorized', true))
+            ->when($request->input('memorized') === 'unmemorized', fn ($query) => $query->where('is_memorized', false));
     }
 
     /**

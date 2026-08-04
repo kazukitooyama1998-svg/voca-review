@@ -64,9 +64,26 @@ class StudyLog extends Model
      */
     public static function undoReview(): void
     {
-        static::whereDate('study_date', today())
-            ->where('review_count', '>', 0)
-            ->decrement('review_count');
+        static::undoReviews(1);
+    }
+
+    /**
+     * Undo several reviews recorded earlier today at once (e.g. the bulk
+     * "一括解除" action). Clamped at 0 so the count never goes negative.
+     */
+    public static function undoReviews(int $count): void
+    {
+        if ($count <= 0) {
+            return;
+        }
+
+        $studyLog = static::whereDate('study_date', today())->first();
+
+        if (! $studyLog) {
+            return;
+        }
+
+        $studyLog->update(['review_count' => max(0, $studyLog->review_count - $count)]);
     }
 
     /**

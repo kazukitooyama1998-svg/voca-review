@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Grammar;
 use App\Models\StudyLog;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -15,22 +16,8 @@ class GrammarController extends Controller
      */
     public function index(Request $request): View
     {
-        $grammars = Grammar::query()
+        $grammars = $this->filteredQuery($request)
             ->with('examples')
-            ->when($request->filled('keyword'), function ($query) use ($request) {
-                $keyword = $request->string('keyword');
-
-                $query->where(function ($query) use ($keyword) {
-                    $query->where('name', 'like', "%{$keyword}%")
-                        ->orWhere('explanation', 'like', "%{$keyword}%")
-                        ->orWhereHas('examples', function ($query) use ($keyword) {
-                            $query->where('example_en', 'like', "%{$keyword}%")
-                                ->orWhere('example_ja', 'like', "%{$keyword}%");
-                        });
-                });
-            })
-            ->when($request->input('memorized') === 'memorized', fn ($query) => $query->where('is_memorized', true))
-            ->when($request->input('memorized') === 'unmemorized', fn ($query) => $query->where('is_memorized', false))
             ->when($request->input('sort') === 'oldest', fn ($query) => $query->oldest(), fn ($query) => $query->latest())
             ->paginate(20)
             ->withQueryString();
@@ -97,6 +84,60 @@ class GrammarController extends Controller
         $grammar->save();
 
         return $this->redirectBackToEntry();
+    }
+
+    /**
+     * Clear the "studied today" flag on every grammar point matching the
+     * current search/filter (the "学習した" bulk-clear button above the list).
+     */
+    public function clearStudied(Request $request): RedirectResponse
+    {
+        $studiedTodayIds = $this->filteredQuery($request)
+            ->whereDate('studied_at', today())
+            ->pluck('id');
+
+        if ($studiedTodayIds->isNotEmpty()) {
+            Grammar::whereIn('id', $studiedTodayIds)->update(['studied_at' => null]);
+            StudyLog::undoReviews($studiedTodayIds->count());
+        }
+
+        return $this->redirectBackToEntry();
+    }
+
+    /**
+     * Clear the "memorized" flag on every grammar point matching the current
+     * search/filter (the "覚えた" bulk-clear button above the list).
+     */
+    public function clearMemorized(Request $request): RedirectResponse
+    {
+        $this->filteredQuery($request)
+            ->where('is_memorized', true)
+            ->update(['is_memorized' => false]);
+
+        return $this->redirectBackToEntry();
+    }
+
+    /**
+     * The search/filter conditions shared by index() and the bulk-clear
+     * actions, so "clear" always matches exactly what's currently shown.
+     */
+    private function filteredQuery(Request $request): Builder
+    {
+        return Grammar::query()
+            ->when($request->filled('keyword'), function ($query) use ($request) {
+                $keyword = $request->string('keyword');
+
+                $query->where(function ($query) use ($keyword) {
+                    $query->where('name', 'like', "%{$keyword}%")
+                        ->orWhere('explanation', 'like', "%{$keyword}%")
+                        ->orWhereHas('examples', function ($query) use ($keyword) {
+                            $query->where('example_en', 'like', "%{$keyword}%")
+                                ->orWhere('example_ja', 'like', "%{$keyword}%");
+                        });
+                });
+            })
+            ->when($request->input('memorized') === 'memorized', fn ($query) => $query->where('is_memorized', true))
+            ->when($request->input('memorized') === 'unmemorized', fn ($query) => $query->where('is_memorized', false));
     }
 
     /**

@@ -2,10 +2,41 @@
     $updateRouteName = $activeTab === 'grammar' ? 'grammars.update' : 'vocabularies.update';
     $destroyRouteName = $activeTab === 'grammar' ? 'grammars.destroy' : 'vocabularies.destroy';
     $toggleStudiedRouteName = $activeTab === 'grammar' ? 'grammars.toggle-studied' : 'vocabularies.toggle-studied';
+    $clearStudiedRouteName = $activeTab === 'grammar' ? 'grammars.clear-studied' : 'vocabularies.clear-studied';
+    $clearMemorizedRouteName = $activeTab === 'grammar' ? 'grammars.clear-memorized' : 'vocabularies.clear-memorized';
+    // 一括解除は「今表示されている絞り込み結果」全件が対象になるよう、現在のクエリ文字列をそのまま引き継ぐ
+    $currentQueryString = http_build_query(request()->query());
 @endphp
 
 <div class="rounded-2xl bg-white p-6 shadow-sm">
-    <h2 class="mb-4 text-base font-bold text-gray-800">登録一覧（{{ $entries->total() }} 件）</h2>
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <h2 class="text-base font-bold text-gray-800">登録一覧（{{ $entries->total() }} 件）</h2>
+
+        <div class="flex flex-wrap gap-2">
+            <form
+                action="{{ route($clearStudiedRouteName).($currentQueryString ? '?'.$currentQueryString : '') }}"
+                method="POST"
+                onsubmit="return confirm('表示中の「学習した」チェックを一括で解除しますか？')"
+            >
+                @csrf
+                @method('PATCH')
+                <button type="submit" class="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50">
+                    <i class="fa-solid fa-rotate-left fa-fw"></i> 学習したを一括解除
+                </button>
+            </form>
+            <form
+                action="{{ route($clearMemorizedRouteName).($currentQueryString ? '?'.$currentQueryString : '') }}"
+                method="POST"
+                onsubmit="return confirm('表示中の「覚えた」チェックを一括で解除しますか？')"
+            >
+                @csrf
+                @method('PATCH')
+                <button type="submit" class="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50">
+                    <i class="fa-solid fa-rotate-left fa-fw"></i> 覚えたを一括解除
+                </button>
+            </form>
+        </div>
+    </div>
 
     {{-- 横スクロールが必要なテーブルではなく、1件ずつカード状に積み上げる形にして
          例文（英語・日本語）を縦に並べることで、横幅に依存せず最初から全項目が見えるようにする --}}
