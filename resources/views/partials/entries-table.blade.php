@@ -12,8 +12,8 @@
     <div class="divide-y divide-gray-100">
         @forelse ($entries as $entry)
             <div id="entry-{{ $activeTab }}-{{ $entry->id }}" class="py-5">
-                <div class="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
-                    <div class="flex min-w-0 items-start gap-3">
+                <div class="flex flex-col items-start gap-3 sm:flex-row sm:justify-between sm:gap-x-4 sm:gap-y-3">
+                    <div class="flex min-w-0 flex-1 items-start gap-3">
                         <x-type-badge :type="$activeTab" class="mt-0.5 shrink-0" />
                         <div class="min-w-0">
                             <p class="flex flex-wrap items-baseline gap-x-2">
@@ -33,7 +33,7 @@
                         </div>
                     </div>
 
-                    <div class="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2">
+                    <div class="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 self-end sm:self-auto">
                         {{-- 「今日すでに学習したか」を表すフラグ。チェックすると学習記録（今日の復習数）に+1、外すと-1。
                              studied_atが「今日」かどうかで判定するため、日付が変わると自動的に未チェックへ戻る --}}
                         <form action="{{ route($toggleStudiedRouteName, $entry) }}" method="POST">
