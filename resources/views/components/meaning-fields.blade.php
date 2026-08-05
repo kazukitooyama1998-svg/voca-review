@@ -1,27 +1,27 @@
-@props(['examples' => []])
+@props(['meanings' => []])
 
 @php
-    // old('examples') returns plain arrays (not model instances) after a validation
-    // error, so normalize each row to an object for consistent property access below.
-    $rows = collect($examples)->map(fn ($example) => is_array($example) ? (object) $example : $example)->values();
+    // old('meanings') は生の文字列配列、Eloquentのコレクションは VocabularyMeaning
+    // モデルの配列なので、どちらも表示用の単純な文字列配列に揃える。
+    $rows = collect($meanings)->map(fn ($meaning) => is_object($meaning) ? $meaning->meaning : $meaning)->values();
     $rows = $rows->isNotEmpty() ? $rows : collect([null]);
 @endphp
 
 <div class="space-y-2" data-repeatable-fields data-next-index="{{ $rows->count() }}">
     <div class="space-y-2" data-repeatable-rows>
-        @foreach ($rows as $index => $example)
-            <x-example-row :index="$index" :example="$example" />
+        @foreach ($rows as $index => $meaning)
+            <x-meaning-row :index="$index" :meaning="$meaning" />
         @endforeach
     </div>
 
     {{-- テンプレート行。ブラウザは<template>の中身を描画せず、JSでのclone専用として扱う --}}
     <template data-repeatable-template>
-        <x-example-row index="__INDEX__" />
+        <x-meaning-row index="__INDEX__" />
     </template>
 
     <button
         type="button"
         class="rounded-lg border border-blue-300 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-50"
         data-add-row
-    ><i class="fa-solid fa-plus fa-fw"></i> 例文を追加</button>
+    ><i class="fa-solid fa-plus fa-fw"></i> 意味を追加</button>
 </div>

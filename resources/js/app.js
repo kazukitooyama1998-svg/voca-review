@@ -72,16 +72,16 @@ document.addEventListener('submit', (event) => {
     }
 });
 
-// 例文の「＋例文を追加」「削除」ボタン用。<template>の中身を複製して行を増減する。
-// name属性の__INDEX__は連番に置き換える必要がある。examples[][example_en]のように
-// 添字なしの[]にすると、PHP側でen/jaのペアが行ごとに正しく対応付かなくなるため。
+// 「＋追加」「削除」で行を増減する繰り返し入力欄（例文・意味など）共通のロジック。
+// <template>の中身を複製し、name属性の__INDEX__は連番に置き換える。examples[][example_en]
+// のように添字なしの[]にすると、PHP側で複数フィールドが行ごとに正しく対応付かなくなるため。
 document.addEventListener('click', (event) => {
-    const addButton = event.target.closest('[data-add-example]');
+    const addButton = event.target.closest('[data-add-row]');
 
     if (addButton) {
-        const wrapper = addButton.closest('[data-example-fields]');
-        const rowsContainer = wrapper.querySelector('[data-example-rows]');
-        const template = wrapper.querySelector('[data-example-template]');
+        const wrapper = addButton.closest('[data-repeatable-fields]');
+        const rowsContainer = wrapper.querySelector('[data-repeatable-rows]');
+        const template = wrapper.querySelector('[data-repeatable-template]');
         const nextIndex = Number(wrapper.dataset.nextIndex);
 
         const row = template.content.firstElementChild.cloneNode(true);
@@ -95,9 +95,9 @@ document.addEventListener('click', (event) => {
         return;
     }
 
-    const removeButton = event.target.closest('[data-remove-example]');
+    const removeButton = event.target.closest('[data-remove-row]');
 
     if (removeButton) {
-        removeButton.closest('[data-example-row]').remove();
+        removeButton.closest('[data-repeatable-row]').remove();
     }
 });

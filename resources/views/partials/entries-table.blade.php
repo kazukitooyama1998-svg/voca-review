@@ -60,7 +60,7 @@
                                     <span class="text-xs text-gray-500">{{ $entry->partsOfSpeechLabel() }}</span>
                                 @endif
                             </p>
-                            <p class="mt-1 text-sm text-gray-600">{{ $activeTab === 'grammar' ? $entry->explanation : $entry->meaning }}</p>
+                            <p class="mt-1 text-sm text-gray-600">{{ $activeTab === 'grammar' ? $entry->explanation : $entry->meaningsLabel() }}</p>
                         </div>
                     </div>
 
@@ -90,7 +90,9 @@
                                 <input type="hidden" name="explanation" value="{{ $entry->explanation }}">
                             @else
                                 <input type="hidden" name="word" value="{{ $entry->word }}">
-                                <input type="hidden" name="meaning" value="{{ $entry->meaning }}">
+                                @foreach ($entry->meanings as $index => $meaning)
+                                    <input type="hidden" name="meanings[{{ $index }}]" value="{{ $meaning->meaning }}">
+                                @endforeach
                                 @foreach ($entry->parts_of_speech as $partOfSpeech)
                                     <input type="hidden" name="parts_of_speech[]" value="{{ $partOfSpeech->value }}">
                                 @endforeach
@@ -167,8 +169,8 @@
                                 <input type="text" name="word" value="{{ $entry->word }}" required class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
                             </div>
                             <div>
-                                <label class="mb-1 block text-sm font-medium text-gray-700">意味</label>
-                                <input type="text" name="meaning" value="{{ $entry->meaning }}" required class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                                <label class="mb-1 block text-sm font-medium text-gray-700">意味（複数登録可）</label>
+                                <x-meaning-fields :meanings="$entry->meanings" />
                             </div>
                             <div>
                                 <label class="mb-1 block text-sm font-medium text-gray-700">品詞（複数選択可）</label>

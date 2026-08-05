@@ -19,7 +19,7 @@ class VocabularyController extends Controller
     public function index(Request $request): View
     {
         $vocabularies = $this->filteredQuery($request)
-            ->with('examples')
+            ->with(['examples', 'meanings'])
             ->when($request->input('sort') === 'oldest', fn ($query) => $query->oldest(), fn ($query) => $query->latest())
             ->paginate(20)
             ->withQueryString();
@@ -34,9 +34,11 @@ class VocabularyController extends Controller
     {
         $validated = $this->validateVocabulary($request);
         $examples = $this->filledExamples($validated);
+        $meanings = $this->filledMeanings($validated);
 
         $vocabulary = Vocabulary::create($validated);
         $vocabulary->examples()->createMany($examples);
+        $vocabulary->meanings()->createMany($meanings);
 
         return redirect()->route('vocabularies.index');
     }
@@ -48,14 +50,17 @@ class VocabularyController extends Controller
     {
         $validated = $this->validateVocabulary($request);
         $examples = $this->filledExamples($validated);
+        $meanings = $this->filledMeanings($validated);
 
         $vocabulary->update($validated);
 
-        // Replace all example sentences with the submitted set. Simpler and
-        // safer than diffing rows by id, and cheap since each word only ever
-        // has a handful of examples.
+        // Replace all example sentences/meanings with the submitted set.
+        // Simpler and safer than diffing rows by id, and cheap since each
+        // word only ever has a handful of examples/meanings.
         $vocabulary->examples()->delete();
         $vocabulary->examples()->createMany($examples);
+        $vocabulary->meanings()->delete();
+        $vocabulary->meanings()->createMany($meanings);
 
         return $this->redirectBackToEntry();
     }
@@ -131,7 +136,9 @@ class VocabularyController extends Controller
 
                 $query->where(function ($query) use ($keyword) {
                     $query->where('word', 'like', "%{$keyword}%")
-                        ->orWhere('meaning', 'like', "%{$keyword}%")
+                        ->orWhereHas('meanings', function ($query) use ($keyword) {
+                            $query->where('meaning', 'like', "%{$keyword}%");
+                        })
                         ->orWhereHas('examples', function ($query) use ($keyword) {
                             $query->where('example_en', 'like', "%{$keyword}%")
                                 ->orWhere('example_ja', 'like', "%{$keyword}%");
@@ -158,7 +165,8 @@ class VocabularyController extends Controller
 
     /**
      * Validate the fields shared by store() and update(), including the
-     * repeatable "examples" rows submitted by the example-fields component.
+     * repeatable "examples"/"meanings" rows submitted by the example-fields
+     * and meaning-fields components.
      */
     private function validateVocabulary(Request $request): array
     {
@@ -166,11 +174,16 @@ class VocabularyController extends Controller
             'word' => ['required', 'string', 'max:255'],
             'parts_of_speech' => ['required', 'array', 'min:1'],
             'parts_of_speech.*' => [Rule::enum(PartOfSpeech::class)],
-            'meaning' => ['required', 'string'],
             'is_memorized' => ['boolean'],
             'examples' => ['nullable', 'array'],
             'examples.*.example_en' => ['nullable', 'string'],
             'examples.*.example_ja' => ['nullable', 'string'],
+            'meanings' => ['required', 'array', 'min:1', function ($attribute, $value, $fail) {
+                if (collect($value)->every(fn ($meaning) => blank($meaning))) {
+                    $fail('意味を少なくとも1つ入力してください。');
+                }
+            }],
+            'meanings.*' => ['nullable', 'string'],
         ]);
     }
 
@@ -189,5 +202,23 @@ class VocabularyController extends Controller
         unset($validated['examples']);
 
         return $examples;
+    }
+
+    /**
+     * Pull the "meanings" rows out of the validated data (the vocabularies
+     * table no longer has a meaning column) and drop any blank row left over
+     * from an unused "add meaning" slot.
+     */
+    private function filledMeanings(array &$validated): array
+    {
+        $meanings = collect($validated['meanings'] ?? [])
+            ->filter(fn ($meaning) => filled($meaning))
+            ->values()
+            ->map(fn ($meaning) => ['meaning' => $meaning])
+            ->all();
+
+        unset($validated['meanings']);
+
+        return $meanings;
     }
 }

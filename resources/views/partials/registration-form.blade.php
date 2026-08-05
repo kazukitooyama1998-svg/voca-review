@@ -39,12 +39,6 @@
                     @error('word') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
 
-                <div>
-                    <label for="meaning" class="mb-1 block text-sm font-medium text-gray-700">意味 <span class="text-red-500">*</span></label>
-                    <input type="text" id="meaning" name="meaning" value="{{ old('meaning') }}" placeholder="例) 思いやり、同情" class="w-full rounded-lg border border-gray-300 py-2 px-3 text-sm text-gray-800 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500">
-                    @error('meaning') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                </div>
-
                 <div class="sm:col-span-2">
                     <label class="mb-1 block text-sm font-medium text-gray-700">品詞（複数選択可） <span class="text-red-500">*</span></label>
                     <div class="flex flex-wrap gap-x-4 gap-y-2 rounded-lg border border-gray-300 px-3 py-2">
@@ -66,6 +60,14 @@
                 </div>
             @endif
         </div>
+
+        @if ($activeTab === 'vocabulary')
+            <div>
+                <label class="mb-1 block text-sm font-medium text-gray-700">意味（複数登録可） <span class="text-red-500">*</span></label>
+                <x-meaning-fields :meanings="old('meanings', [])" />
+                @error('meanings') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+            </div>
+        @endif
 
         <div>
             <label class="mb-1 block text-sm font-medium text-gray-700">例文（複数登録可）</label>

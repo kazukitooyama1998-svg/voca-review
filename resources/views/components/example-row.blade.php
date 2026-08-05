@@ -1,6 +1,6 @@
 @props(['index', 'example' => null])
 
-<div class="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_auto] sm:items-start" data-example-row>
+<div class="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_auto] sm:items-start" data-repeatable-row>
     <input
         type="text"
         name="examples[{{ $index }}][example_en]"
@@ -20,6 +20,6 @@
         title="この例文を削除"
         aria-label="この例文を削除"
         class="justify-self-start rounded-lg border border-red-200 p-2 text-red-600 hover:bg-red-50"
-        data-remove-example
+        data-remove-row
     ><i class="fa-solid fa-xmark fa-fw"></i></button>
 </div>

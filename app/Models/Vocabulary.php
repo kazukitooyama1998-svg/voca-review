@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Casts\AsEnumCollection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['word', 'parts_of_speech', 'meaning', 'is_memorized'])]
+#[Fillable(['word', 'parts_of_speech', 'is_memorized'])]
 class Vocabulary extends Model
 {
     /**
@@ -17,6 +17,14 @@ class Vocabulary extends Model
     public function examples(): HasMany
     {
         return $this->hasMany(VocabularyExample::class)->oldest('id');
+    }
+
+    /**
+     * The meanings registered for this word.
+     */
+    public function meanings(): HasMany
+    {
+        return $this->hasMany(VocabularyMeaning::class)->oldest('id');
     }
 
     /**
@@ -39,5 +47,13 @@ class Vocabulary extends Model
     public function partsOfSpeechLabel(): string
     {
         return $this->parts_of_speech->map->label()->implode('・');
+    }
+
+    /**
+     * All registered meanings joined into one line, e.g. "統合する / 合成する".
+     */
+    public function meaningsLabel(): string
+    {
+        return $this->meanings->pluck('meaning')->implode(' / ');
     }
 }
