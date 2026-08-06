@@ -56,4 +56,12 @@ class Vocabulary extends Model
     {
         return $this->meanings->pluck('meaning')->implode(' / ');
     }
+
+    /**
+     * Number of vocabulary entries marked as memorized ("覚えた" checked).
+     */
+    public static function memorizedCount(): int
+    {
+        return static::where('is_memorized', true)->count();
+    }
 }

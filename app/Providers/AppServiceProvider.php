@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\StudyLog;
+use App\Models\Vocabulary;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -30,6 +31,8 @@ class AppServiceProvider extends ServiceProvider
                 'streakDays' => StudyLog::currentStreak(),
                 'totalReviewCount' => StudyLog::totalReviewCount(),
                 'lastStudyDate' => StudyLog::lastStudyDate(),
+                'memorizedVocabularyCount' => Vocabulary::memorizedCount(),
+                'totalVocabularyCount' => Vocabulary::count(),
             ]);
         });
     }
