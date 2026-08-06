@@ -29,6 +29,7 @@ class AppServiceProvider extends ServiceProvider
                 'todayReviewCount' => StudyLog::todayReviewCount(),
                 'todayReviewGoal' => 100,
                 'streakDays' => StudyLog::currentStreak(),
+                'totalStudyDays' => StudyLog::totalStudyDays(),
                 'totalReviewCount' => StudyLog::totalReviewCount(),
                 'lastStudyDate' => StudyLog::lastStudyDate(),
                 'memorizedVocabularyCount' => Vocabulary::memorizedCount(),

@@ -39,6 +39,14 @@ class StudyLog extends Model
     }
 
     /**
+     * Total number of distinct days on which at least one review was logged.
+     */
+    public static function totalStudyDays(): int
+    {
+        return (int) static::where('review_count', '>', 0)->count();
+    }
+
+    /**
      * The most recent date a review was logged.
      */
     public static function lastStudyDate(): ?Carbon
