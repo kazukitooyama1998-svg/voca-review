@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['name', 'explanation', 'is_memorized'])]
+#[Fillable(['name', 'explanation', 'is_memorized', 'is_studied'])]
 class Grammar extends Model
 {
     /**
@@ -26,6 +26,7 @@ class Grammar extends Model
     {
         return [
             'is_memorized' => 'boolean',
+            'is_studied' => 'boolean',
             'studied_at' => 'datetime',
         ];
     }

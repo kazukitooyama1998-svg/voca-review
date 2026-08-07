@@ -65,8 +65,10 @@
                     </div>
 
                     <div class="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 self-end sm:self-auto">
-                        {{-- 「今日すでに学習したか」を表すフラグ。チェックすると学習記録（今日の復習数）に+1、外すと-1。
-                             studied_atが「今日」かどうかで判定するため、日付が変わると自動的に未チェックへ戻る --}}
+                        {{-- 「学習した」フラグ。「覚えた」と同じく永続的で、明示的にチェックを外す（または
+                             一括解除する）までは日付が変わっても保持され続ける。チェックすると学習記録
+                             （今日の復習数）に+1、外すとその分を-1するが、同じ日に何度もON/OFFしても
+                             二重にカウントされないようstudied_atで直近の加算日を管理している --}}
                         <form action="{{ route($toggleStudiedRouteName, $entry) }}" method="POST" data-preserve-scroll>
                             @csrf
                             @method('PATCH')
@@ -74,7 +76,7 @@
                                 <input
                                     type="checkbox"
                                     onchange="this.form.requestSubmit()"
-                                    @checked($entry->studied_at?->isToday())
+                                    @checked($entry->is_studied)
                                     class="rounded border-gray-300 text-blue-600"
                                 >
                                 学習した

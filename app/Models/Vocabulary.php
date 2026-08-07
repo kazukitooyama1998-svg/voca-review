@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Casts\AsEnumCollection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['word', 'parts_of_speech', 'is_memorized'])]
+#[Fillable(['word', 'parts_of_speech', 'is_memorized', 'is_studied'])]
 class Vocabulary extends Model
 {
     /**
@@ -37,6 +37,7 @@ class Vocabulary extends Model
         return [
             'parts_of_speech' => AsEnumCollection::of(PartOfSpeech::class),
             'is_memorized' => 'boolean',
+            'is_studied' => 'boolean',
             'studied_at' => 'datetime',
         ];
     }

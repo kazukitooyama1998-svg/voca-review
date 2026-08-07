@@ -76,16 +76,28 @@ class VocabularyController extends Controller
     }
 
     /**
-     * Mark the vocabulary as studied today (or undo it), updating today's study log.
+     * Toggle the "studied" flag (or undo it). The flag itself is persistent —
+     * it stays checked across days until unchecked or bulk-cleared — but each
+     * check only adds to today's study log once: studied_at records the last
+     * date a review was actually counted, so re-checking on the same day
+     * (e.g. off/on again) doesn't double-count, while checking again on a
+     * later day does.
      */
     public function toggleStudied(Vocabulary $vocabulary): RedirectResponse
     {
-        if ($vocabulary->studied_at?->isToday()) {
-            $vocabulary->studied_at = null;
-            StudyLog::undoReview();
+        if ($vocabulary->is_studied) {
+            $vocabulary->is_studied = false;
+
+            if ($vocabulary->studied_at?->isToday()) {
+                StudyLog::undoReview();
+            }
         } else {
-            $vocabulary->studied_at = now();
-            StudyLog::recordReview();
+            $vocabulary->is_studied = true;
+
+            if (! $vocabulary->studied_at?->isToday()) {
+                $vocabulary->studied_at = now();
+                StudyLog::recordReview();
+            }
         }
 
         $vocabulary->save();
@@ -94,18 +106,21 @@ class VocabularyController extends Controller
     }
 
     /**
-     * Clear the "studied today" flag on every vocabulary matching the
-     * current search/filter (the "学習した" bulk-clear button above the list).
+     * Clear the "studied" flag on every vocabulary matching the current
+     * search/filter (the "学習した" bulk-clear button above the list). Only
+     * undoes today's study log for the ones that actually contributed to it.
      */
     public function clearStudied(Request $request): RedirectResponse
     {
-        $studiedTodayIds = $this->filteredQuery($request)
-            ->whereDate('studied_at', today())
-            ->pluck('id');
+        $studiedEntries = $this->filteredQuery($request)
+            ->where('is_studied', true)
+            ->get(['id', 'studied_at']);
 
-        if ($studiedTodayIds->isNotEmpty()) {
-            Vocabulary::whereIn('id', $studiedTodayIds)->update(['studied_at' => null]);
-            StudyLog::undoReviews($studiedTodayIds->count());
+        if ($studiedEntries->isNotEmpty()) {
+            Vocabulary::whereIn('id', $studiedEntries->pluck('id'))->update(['is_studied' => false]);
+
+            $studiedTodayCount = $studiedEntries->filter(fn ($entry) => $entry->studied_at?->isToday())->count();
+            StudyLog::undoReviews($studiedTodayCount);
         }
 
         return $this->redirectBackToEntry();
