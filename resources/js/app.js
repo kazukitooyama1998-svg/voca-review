@@ -63,14 +63,41 @@ document.addEventListener('click', (event) => {
 
 // 単語の意味フラッシュカード（x-flashcardコンポーネント）: タップのたびに
 // is-revealedクラスをトグルする。裏返るアニメーション自体はCSS(app.css)側の担当で、
-// ここではクラスの付け外しとaria-expandedの更新だけを行う。
+// ここではクラスの付け外しとaria-expandedの更新、開閉状態の保存を行う。
+//
+// 「学習した」「覚えた」チェックはページ全体を再読み込みして送信するため、開閉状態を
+// メモリ上（このJSの変数）だけで持つと、チェックするたびにカードが閉じてしまう。
+// そこでsessionStorageに開いているカードのキー一覧を保存しておき、再読み込み後は
+// layouts/app.blade.php末尾の同期スクリプトが、描画前にis-revealedを付け直す。
+const REVEALED_FLASHCARDS_KEY = 'vocareview:revealedFlashcards';
+
+function readRevealedFlashcardKeys() {
+    try {
+        return new Set(JSON.parse(sessionStorage.getItem(REVEALED_FLASHCARDS_KEY)) ?? []);
+    } catch {
+        return new Set();
+    }
+}
+
 document.addEventListener('click', (event) => {
     const card = event.target.closest('.meaning-flashcard');
 
-    if (card) {
-        const revealed = card.classList.toggle('is-revealed');
-        card.setAttribute('aria-expanded', String(revealed));
+    if (!card) {
+        return;
     }
+
+    const revealed = card.classList.toggle('is-revealed');
+    card.setAttribute('aria-expanded', String(revealed));
+
+    const key = card.dataset.flashcardKey;
+
+    if (!key) {
+        return;
+    }
+
+    const revealedKeys = readRevealedFlashcardKeys();
+    revealed ? revealedKeys.add(key) : revealedKeys.delete(key);
+    sessionStorage.setItem(REVEALED_FLASHCARDS_KEY, JSON.stringify([...revealedKeys]));
 });
 
 // data-preserve-scroll を付けたフォーム（学習した/覚えたのチェック、編集、削除）は

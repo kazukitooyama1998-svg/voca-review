@@ -34,5 +34,31 @@
                 }
             })();
         </script>
+
+        {{-- 単語の意味フラッシュカード（x-flashcard）の開閉状態を復元する。スクロール位置の
+             復元と同じ理由で、app.js（<script type="module">は解析完了後まで実行が遅れる）
+             ではなく、DOMがほぼ描画され終わったこの時点で同期的に行うことで、
+             一瞬「閉」の状態が見えてから「開」に切り替わるチラつきを防ぐ。
+             保存はresources/js/app.jsの.meaning-flashcardクリックリスナー側で行っている。 --}}
+        <script>
+            (function () {
+                var revealedKeys;
+
+                try {
+                    revealedKeys = JSON.parse(sessionStorage.getItem('vocareview:revealedFlashcards')) || [];
+                } catch (error) {
+                    revealedKeys = [];
+                }
+
+                revealedKeys.forEach(function (key) {
+                    var card = document.querySelector('.meaning-flashcard[data-flashcard-key="' + CSS.escape(key) + '"]');
+
+                    if (card) {
+                        card.classList.add('is-revealed');
+                        card.setAttribute('aria-expanded', 'true');
+                    }
+                });
+            })();
+        </script>
     </body>
 </html>

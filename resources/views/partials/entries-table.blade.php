@@ -63,7 +63,7 @@
                             @if ($activeTab === 'grammar')
                                 <p class="mt-1 text-sm text-gray-600">{{ $entry->explanation }}</p>
                             @else
-                                <x-flashcard :text="$entry->meaningsLabel()" />
+                                <x-flashcard :text="$entry->meaningsLabel()" :entry-key="$activeTab.'-'.$entry->id" />
                             @endif
                         </div>
                     </div>
