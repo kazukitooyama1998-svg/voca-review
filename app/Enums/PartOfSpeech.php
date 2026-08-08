@@ -6,6 +6,7 @@ enum PartOfSpeech: string
 {
     case Noun = 'noun';
     case Verb = 'verb';
+    case AuxiliaryVerb = 'auxiliary_verb';
     case Adjective = 'adjective';
     case Adverb = 'adverb';
     case Pronoun = 'pronoun';
@@ -22,6 +23,7 @@ enum PartOfSpeech: string
         return match ($this) {
             self::Noun => 'Noun (名詞)',
             self::Verb => 'Verb (動詞)',
+            self::AuxiliaryVerb => 'Auxiliary Verb (助動詞)',
             self::Adjective => 'Adjective (形容詞)',
             self::Adverb => 'Adverb (副詞)',
             self::Pronoun => 'Pronoun (代名詞)',
