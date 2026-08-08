@@ -60,7 +60,11 @@
                                     <span class="text-xs text-gray-500">{{ $entry->partsOfSpeechLabel() }}</span>
                                 @endif
                             </p>
-                            <p class="mt-1 text-sm text-gray-600">{{ $activeTab === 'grammar' ? $entry->explanation : $entry->meaningsLabel() }}</p>
+                            @if ($activeTab === 'grammar')
+                                <p class="mt-1 text-sm text-gray-600">{{ $entry->explanation }}</p>
+                            @else
+                                <x-flashcard :text="$entry->meaningsLabel()" />
+                            @endif
                         </div>
                     </div>
 

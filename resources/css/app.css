@@ -8,3 +8,28 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+
+/*
+ * 単語の意味を「タップして裏返す」フラッシュカード風の表示（x-flashcardコンポーネント）。
+ * 表面（タップ案内）と裏面（意味）を同じグリッドセルに重ねて配置し、コンテナのperspectiveと
+ * inner要素のrotateYで裏返るように見せる。同じセルに重ねることで、意味の長さに応じて
+ * 高さが自動で決まる（表裏どちらか固定の高さを指定しなくて済む）。
+ */
+.meaning-flashcard {
+    perspective: 800px;
+}
+.meaning-flashcard .flashcard-inner {
+    display: grid;
+    transition: transform 0.4s ease;
+    transform-style: preserve-3d;
+}
+.meaning-flashcard .flashcard-face {
+    grid-area: 1 / 1;
+    backface-visibility: hidden;
+}
+.meaning-flashcard .flashcard-back {
+    transform: rotateY(180deg);
+}
+.meaning-flashcard.is-revealed .flashcard-inner {
+    transform: rotateY(180deg);
+}

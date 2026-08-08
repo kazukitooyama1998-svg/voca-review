@@ -61,6 +61,18 @@ document.addEventListener('click', (event) => {
     }
 });
 
+// 単語の意味フラッシュカード（x-flashcardコンポーネント）: タップのたびに
+// is-revealedクラスをトグルする。裏返るアニメーション自体はCSS(app.css)側の担当で、
+// ここではクラスの付け外しとaria-expandedの更新だけを行う。
+document.addEventListener('click', (event) => {
+    const card = event.target.closest('.meaning-flashcard');
+
+    if (card) {
+        const revealed = card.classList.toggle('is-revealed');
+        card.setAttribute('aria-expanded', String(revealed));
+    }
+});
+
 // data-preserve-scroll を付けたフォーム（学習した/覚えたのチェック、編集、削除）は
 // ページ全体を再読み込みして送信するため、送信直前にスクロール位置を保存しておく。
 // 復元はこのスクリプト（<script type="module">なのでDOM解析後まで実行が遅れる）では
